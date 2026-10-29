@@ -33,13 +33,17 @@ The adapter validates support structurally; an AI-provided capability label alon
 
 Only backend code uses the API credential. The base URL is restricted to Token Factory. Model discovery filters the authenticated catalog for Nemotron. Workflows carry the current robot and relevant task/experiment context. Schema failures return explicit errors. Geometry, numerical checks, physics, and hardware eligibility never rely on model arithmetic.
 
-Before each paid request, the ledger reserves a conservative amount based on configured verified rates, UTF-8 message bytes as an input-token bound plus overhead, and the maximum output tokens. SQLite `BEGIN IMMEDIATE` makes the single-instance limit transactional. Actual provider usage replaces reservations when returned. Unknown charges remain reserved. No automatic retries multiply uncertain charges. This control cannot see provider credit balance or spending by other applications.
+Before each paid request, the ledger reserves a conservative amount based on configured verified rates, UTF-8 message bytes as an input-token bound plus overhead, and the maximum output tokens. SQLite `BEGIN IMMEDIATE` makes reservations transactional against pending reservations plus recorded charges, with a hard ceiling of $1 (or a lower configured limit). Valid nonnegative integer provider usage replaces reservations even when the output is subsequently rejected. Invalid or absent usage retains the reservation. The provider response must identify the requested model and finish normally before application validation. Unknown charges remain reserved. No automatic retries multiply uncertain charges. This is an estimated cost admission guard, dependent on configured token prices and correct provider usage. It cannot see provider credit balance, prevent provider billing anomalies, or control spending by other applications. Separate replicas with separate SQLite files do not share a budget.
+
+Generation passes the Pydantic schema as `response_format.json_schema`. Nemotron 3 Super generation disables extended thinking using the documented reasoning/extra-parameter fields, preserving the fixed 2,048-token output budget for structured output. See the public provider schema at https://api.tokenfactory.nebius.com/openapi.json. No automatic paid retries occur.
+
+The ledger adds `response_model`, `completed_at`, and `validated_at` without replacing old rows. Verification requires a successful response from the selected model plus application-schema validation. Only the latest recorded success for the configured model is exposed, with an explicit historical-evidence label. Unknown/legacy records and cache hits cannot create fresh verification.
 
 ## Integration classifications
 
 - MuJoCo: actually integrated and tested.
 - R3F / Three.js / Zustand / Next.js / FastAPI: actually integrated and locally tested.
-- NVIDIA Nemotron through Nebius: implemented adapter; live catalog and inference unverified without credentials/network access.
+- NVIDIA Nemotron through Nebius: authenticated catalog and a real browser-driven three-component robot generation/inspection verified. Other AI workflows and larger designs still require live regression checks.
 - Supabase: implemented auth/storage adapter and SQL migration; live service unverified.
 - Vera Rubin / Grace / Jetson software / CUDA / TensorRT / Isaac ROS / Cosmos / GR00T: educational context, not execution integrations.
 - Isaac Sim / Isaac Lab and GPU benchmarking: planned, not installed or executed.

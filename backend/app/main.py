@@ -5,7 +5,7 @@ from typing import Literal
 from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError, Field
+from pydantic import BaseModel, Field
 import httpx
 from dotenv import load_dotenv
 from . import ai
@@ -53,6 +53,7 @@ async def deployment_guard(request: Request, call_next):
 
 @app.get("/api/health")
 def health():
+    verification = ai.verification_status()
     return dict(
         status="ok",
         physics="mujoco",
@@ -65,7 +66,8 @@ def health():
         supabase_configured=bool(
             os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_ANON_KEY")
         ),
-        live_inference_verified=False,
+        live_inference_verified=verification["verified"],
+        inference_verification=verification,
     )
 
 
@@ -89,7 +91,7 @@ def capabilities():
         ],
         integrations={
             "MuJoCo": "integrated and tested locally",
-            "Nebius Token Factory": "adapter; live credentials required",
+            "Nebius Token Factory": "backend adapter; see /api/health for recorded live verification",
             "Supabase": "adapter; project and login required",
             "Isaac Sim": "planned",
             "Isaac Lab": "planned",
@@ -124,19 +126,53 @@ async def models():
     return await ai.catalog()
 
 
+def validate_robot(data):
+    data = {**data, "provenance": "nebius"}
+    return RobotSpecification.model_validate(data).model_dump(mode="json")
+
+
+def validate_workflow(workflow, data):
+    if workflow == "task":
+        data = RobotTask.model_validate(data).model_dump()
+    elif workflow == "quiz":
+
+        class Question(BaseModel):
+            question: str
+            choices: list[str] = Field(min_length=4, max_length=4)
+            correct_index: int = Field(ge=0, le=3)
+            explanation: str
+
+        data = {
+            "questions": [
+                Question.model_validate(q).model_dump() for q in data["questions"]
+            ]
+        }
+        if not 1 <= len(data["questions"]) <= 10:
+            raise ValueError()
+    elif workflow == "flashcards":
+
+        class Card(BaseModel):
+            id: str
+            front: str
+            back: str
+
+        data = {"cards": [Card.model_validate(c).model_dump() for c in data["cards"]]}
+        if not 1 <= len(data["cards"]) <= 12:
+            raise ValueError()
+    elif not isinstance(data.get("answer"), str) or not data["answer"].strip():
+        raise ValueError()
+    return data
+
+
 @app.post("/api/generate")
 async def generate(req: GenerationRequest):
     result = await ai.infer(
-        "generate", {"prompt": req.prompt}, RobotSpecification.model_json_schema()
+        "generate",
+        {"prompt": req.prompt},
+        RobotSpecification.model_json_schema(),
+        validator=validate_robot,
     )
-    try:
-        result["data"]["provenance"] = "nebius"
-        robot = RobotSpecification.model_validate(result["data"])
-    except (ValidationError, TypeError) as exc:
-        raise HTTPException(
-            502,
-            "NVIDIA model output did not pass robot schema and assembly validation. Try a simpler design.",
-        ) from exc
+    robot = RobotSpecification.model_validate(result["data"])
     return dict(
         robot=robot,
         assembly=assembly_steps(robot),
@@ -148,46 +184,12 @@ async def generate(req: GenerationRequest):
 @app.post("/api/ai")
 async def assist(req: AIRequest):
     schema = RobotTask.model_json_schema() if req.workflow == "task" else None
-    result = await ai.infer(req.workflow, req.model_dump(mode="json"), schema)
-    try:
-        data = result["data"]
-        if req.workflow == "task":
-            data = RobotTask.model_validate(data).model_dump()
-        elif req.workflow == "quiz":
-
-            class Question(BaseModel):
-                question: str
-                choices: list[str] = Field(min_length=4, max_length=4)
-                correct_index: int = Field(ge=0, le=3)
-                explanation: str
-
-            data = {
-                "questions": [
-                    Question.model_validate(q).model_dump() for q in data["questions"]
-                ]
-            }
-            if not 1 <= len(data["questions"]) <= 10:
-                raise ValueError()
-        elif req.workflow == "flashcards":
-
-            class Card(BaseModel):
-                id: str
-                front: str
-                back: str
-
-            data = {
-                "cards": [Card.model_validate(c).model_dump() for c in data["cards"]]
-            }
-            if not 1 <= len(data["cards"]) <= 12:
-                raise ValueError()
-        elif not isinstance(data.get("answer"), str):
-            raise ValueError()
-        result["data"] = data
-        return result
-    except (ValidationError, KeyError, TypeError, ValueError):
-        raise HTTPException(
-            502, "The model response failed the required workflow schema."
-        )
+    return await ai.infer(
+        req.workflow,
+        req.model_dump(mode="json"),
+        schema,
+        validator=lambda data: validate_workflow(req.workflow, data),
+    )
 
 
 @app.post("/api/recommend")

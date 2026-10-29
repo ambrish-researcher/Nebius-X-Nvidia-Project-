@@ -14,13 +14,13 @@ The repository name is unchanged. The application uses the directive's internal 
 - **Real MuJoCo 3.3.7** four-wheel-rover drive experiment. The model uses the current specification's components, masses, and geometry. Playback, trajectory, joint states, actuator forces, contact counts, and JSON export come from actual solver state.
 - Browser project history, experiment history, quiz attempts, and flashcard review state.
 
-## Implemented integrations that still need live verification
+## NVIDIA integration and optional cloud storage
 
-**Nebius Token Factory / NVIDIA Nemotron:** backend-only authenticated model discovery, JSON responses, Pydantic validation, timeout, no automatic paid retry, persistent response cache, token usage, and a SQLite budget ledger. Generation, task interpretation, tutor, recommendations, result analysis, quiz, and flashcard workflows have adapters. An unavailable provider returns a visible error; there is no scripted AI fallback.
+**Nebius Token Factory / NVIDIA Nemotron:** backend-only authenticated model discovery, JSON responses, Pydantic validation, timeout, no automatic paid retry, persistent response cache, token usage, and a SQLite budget ledger. Generation, task interpretation, tutor, recommendations, result analysis, quiz, and flashcard workflows have adapters. A real browser prompt → Nemotron → validated three-component robot → 3D inspection workflow has been verified. An unavailable provider returns a visible error; there is no scripted AI fallback.
 
 **Supabase:** email sign-in and user-JWT REST persistence with row-level security. Browser persistence works independently. Cloud sync requires a project and migration.
 
-**Not complete:** authenticated Nemotron inference, provider credit verification, Supabase integration testing, and a public deployment. No credentials were available. Public AI requests additionally require a lab access token. This is a functional local prototype, not a completed P0 hackathon submission.
+**Not complete:** provider credit verification, live tests for every AI workflow and complex robot design, Supabase integration testing, and a public deployment. Nemotron authentication and application-level generation are verified; Supabase is not configured. Public AI requests additionally require a lab access token. This is a functional local prototype, not a completed P0 hackathon submission.
 
 ## Run
 
@@ -47,14 +47,14 @@ The default reference workflow works without paid AI. Open the lab, inspect a co
 1. Allow `api.tokenfactory.nebius.com` through the environment's HTTPS policy and configure `NEBIUS_API_KEY` securely on the backend. Never use a `NEXT_PUBLIC_` API key.
 2. Use Connections → Discover NVIDIA models, or authenticated `GET /api/models`. Select an actual returned Nemotron ID as `NEBIUS_MODEL_ID`; no default model is invented.
 3. Verify the model's current input/output token prices in the account, then configure `NEBIUS_INPUT_USD_PER_MILLION` and `NEBIUS_OUTPUT_USD_PER_MILLION`. Paid calls are blocked until prices are configured. Check the **Token Factory** balance independently; AI Cloud credit is not assumed interchangeable.
-4. Set `NEBIUS_BUDGET_LIMIT_USD` (hard-capped by the application at $25), `NEBIUS_MAX_OUTPUT_TOKENS=2048`, and `NEBIUS_REQUEST_TIMEOUT=60`.
+4. Set `NEBIUS_BUDGET_LIMIT_USD` (hard-capped by the application at $1), `NEBIUS_MAX_OUTPUT_TOKENS=2048`, and `NEBIUS_REQUEST_TIMEOUT=60`.
 5. Restart the backend. Run the live catalog test and one real generation. Validate output and actual account usage before a demonstration.
 
-The ledger is a **local application spend guard, not the provider balance**. Reservations are transactional and conservative. A failed/uncertain request retains its reservation and blocks an identical paid retry until operator reconciliation. Cache hits avoid a second inference charge. Keep `.runtime/usage.sqlite` on persistent storage; do not run multiple independent backend replicas with separate budgets. No cloud infrastructure is provisioned by this project.
+The ledger is a **local application spend guard, not the provider balance**. The effective ceiling is the lower of the configured limit and $1, including when the setting is absent. Reservations are transactional and conservative. Unknown charges retain their reservations. Reported valid token usage is reconciled even when JSON or application validation fails. Parsed candidates are retained locally for validation without another charge; invalid candidates are never displayed as successful responses. Transport failures block identical paid retries until operator reconciliation. Cache hits avoid a second inference charge. Keep `.runtime/usage.sqlite` on persistent storage; do not run multiple independent backend replicas with separate budgets. No cloud infrastructure is provisioned by this project. Rates and provider token reporting must be correct for the cost estimate to match billing. Unexpected token-bound overruns are recorded and rejected; the app cannot reverse provider charges or enforce a provider-wide account cap.
 
 ## Supabase persistence
 
-Apply [supabase/001_projects.sql](supabase/001_projects.sql) once in your project's SQL editor, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` on the backend, and allow the specific project hostname in the network policy. Create an email/password account using Supabase's supported auth flow. Sign in using Connections; Notebook offers cloud sync and retrieval. User JWTs are verified against Supabase Auth; REST writes use that JWT and RLS, never a service-role bypass. Tokens remain in session storage; no password is persisted. Expired sessions require sign-in again.
+Apply [supabase/001_projects.sql](supabase/001_projects.sql) once in your project's SQL editor, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` on the backend, and allow the specific project hostname in the network policy. Create an email/password account using Supabase's supported auth flow. Sign in using Connections; Notebook offers cloud sync and retrieval. User JWTs are verified against Supabase Auth; REST writes use that JWT and RLS, never a service-role bypass. Tokens remain in session storage; no password is persisted. Expired sessions require sign-in again. Before enabling cloud writes for generated robots, normalize model-supplied project identifiers to UUIDs: the live model returned a slug, while the existing SQL table uses UUID primary keys.
 
 ## Validate
 
@@ -68,7 +68,15 @@ npm run build
 npm run test:e2e
 ```
 
-`CHROMIUM_PATH` selects an installed Chromium executable; the cloud image has `/usr/bin/chromium`. Browser tests cover desktop/mobile reference workflows, real physics, local persistence, distinct geometry families, and explicit unavailable-AI behavior. The live catalog test is skipped without a credential; mocked transport tests do **not** establish real inference.
+`CHROMIUM_PATH` selects an installed Chromium executable; the cloud image has `/usr/bin/chromium`. Default browser tests cover desktop/mobile reference workflows, real physics, local persistence, distinct geometry families, and explicitly mocked unavailable/successful AI behavior without paid calls. The live catalog test is skipped without a credential; mocked transport tests do **not** establish real inference.
+
+A single opt-in browser test uses the real backend and spends tokens (desktop only, no retries):
+
+```bash
+RUN_LIVE_NEBIUS=1 npm run test:e2e -- e2e/nebius-live.spec.ts --project=desktop --trace=off --retries=0
+```
+
+`/api/health` reports `live_inference_verified` from persisted, model-matched, application-validated live responses. Connections refreshes this evidence and displays “Previously verified” plus the success time. A cached response, catalog query, malformed output, or legacy cache record cannot invent a new successful verification. This is historical evidence, not a live availability probe; no paid request runs on health checks.
 
 The production build uses Next.js's supported Webpack builder because Turbopack's CSS-worker socket is restricted in this cloud execution environment.
 

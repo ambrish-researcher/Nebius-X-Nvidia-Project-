@@ -135,3 +135,18 @@ export type Section =
   | "simulate"
   | "learn"
   | "history";
+
+export interface BackendHealth {
+  nebius_configured: boolean;
+  model_configured: boolean;
+  pricing_configured: boolean;
+  supabase_configured: boolean;
+  live_inference_verified: boolean;
+  inference_verification: {
+    verified: boolean;
+    model: string | null;
+    provider: string | null;
+    last_success_at: string | null;
+    basis: string;
+  };
+}

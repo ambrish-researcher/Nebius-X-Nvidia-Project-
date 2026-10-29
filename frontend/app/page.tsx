@@ -35,7 +35,13 @@ import { api, formatError } from "../lib/api";
 import { useModalFocus } from "../lib/use-modal-focus";
 import { PanelContent, deriveAssembly } from "../components/lab-panels";
 import { Button } from "../components/ui/button";
-import type { AssemblyStep, RobotSpec, Project, Section } from "../lib/types";
+import type {
+  AssemblyStep,
+  RobotSpec,
+  Project,
+  Section,
+  BackendHealth,
+} from "../lib/types";
 const RobotScene = dynamic(() => import("../components/robot-scene"), {
   ssr: false,
   loading: () => <div className="scene-loading">INITIALIZING LAB</div>,
@@ -81,12 +87,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [connections, setConnections] = useState(false);
   const [generationOpen, setGenerationOpen] = useState(false);
-  const [health, setHealth] = useState<{
-    nebius_configured: boolean;
-    model_configured: boolean;
-    pricing_configured: boolean;
-    supabase_configured: boolean;
-  } | null>(null);
+  const [health, setHealth] = useState<BackendHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
   const reduce = useReducedMotion();
@@ -711,14 +712,10 @@ function Connections({
   onError,
 }: {
   close: () => void;
-  health: {
-    nebius_configured: boolean;
-    model_configured: boolean;
-    pricing_configured: boolean;
-    supabase_configured: boolean;
-  } | null;
+  health: BackendHealth | null;
   onError: (s: string) => void;
 }) {
+  const [currentHealth, setCurrentHealth] = useState(health);
   const [token, setToken] = useState("");
   const [models, setModels] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -731,6 +728,9 @@ function Connections({
     tokens: number;
   } | null>(null);
   useEffect(() => {
+    api<BackendHealth>("health")
+      .then(setCurrentHealth)
+      .catch(() => {});
     setToken(sessionStorage.getItem("lab-access-token") || "");
     api<typeof usage>("usage")
       .then(setUsage)
@@ -803,27 +803,52 @@ function Connections({
           </div>
           <div>
             <span>Nebius credential</span>
-            <b>{health?.nebius_configured ? "Configured" : "Missing"}</b>
+            <b>{currentHealth?.nebius_configured ? "Configured" : "Missing"}</b>
           </div>
+          <div>
+            <span>Live NVIDIA inference</span>
+            <b>
+              {currentHealth?.live_inference_verified
+                ? "Previously verified"
+                : "Not yet verified"}
+            </b>
+          </div>
+          {currentHealth?.inference_verification?.last_success_at && (
+            <div>
+              <span>Last validated response</span>
+              <b>
+                {new Date(
+                  currentHealth.inference_verification.last_success_at,
+                ).toLocaleString()}
+              </b>
+            </div>
+          )}
           <div>
             <span>NVIDIA model ID</span>
-            <b>{health?.model_configured ? "Configured" : "Not selected"}</b>
+            <b>
+              {currentHealth?.model_configured ? "Configured" : "Not selected"}
+            </b>
           </div>
           <div>
-            <span>Verified token prices</span>
+            <span>Token prices</span>
             <b>
-              {health?.pricing_configured ? "Configured" : "Not configured"}
+              {currentHealth?.pricing_configured
+                ? "Configured"
+                : "Not configured"}
             </b>
           </div>
           <div>
             <span>Supabase project</span>
-            <b>{health?.supabase_configured ? "Configured" : "Missing"}</b>
+            <b>
+              {currentHealth?.supabase_configured ? "Configured" : "Missing"}
+            </b>
           </div>
         </div>
         <p className="fine muted">
           API keys stay on the backend. Add NEBIUS_API_KEY, a catalog Nemotron
           model ID, and verified token prices in environment settings.
-          Configuration alone does not establish live verification.
+          Verification records a past application-validated response for the
+          configured model; it does not guarantee current availability.
         </p>
         <label className="field-label" htmlFor="access-token">
           LAB ACCESS TOKEN (PUBLIC DEPLOYMENTS)
@@ -894,7 +919,7 @@ function Connections({
           />
           <Button
             variant="outline"
-            disabled={busy || !health?.supabase_configured}
+            disabled={busy || !currentHealth?.supabase_configured}
           >
             Sign in to sync <ArrowUpRight size={14} />
           </Button>

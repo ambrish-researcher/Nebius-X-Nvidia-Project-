@@ -383,7 +383,7 @@ function CameraRig() {
     />
   );
 }
-function Performance({ onSlow }: { onSlow: () => void }) {
+function Performance({ onSlow }: { onSlow: (ratio: number) => void }) {
   const frames = useRef(0),
     elapsed = useRef(0);
   const { gl } = useThree();
@@ -395,8 +395,7 @@ function Performance({ onSlow }: { onSlow: () => void }) {
       const node = document.getElementById("render-fps");
       if (node) node.textContent = `${Math.round(fps)} FPS · LIVE`;
       if (fps < 22) {
-        gl.setPixelRatio(0.75);
-        onSlow();
+        onSlow(Math.max(0.35, Math.min(0.75, gl.getPixelRatio() * 0.75)));
       }
       frames.current = 0;
       elapsed.current = 0;
@@ -429,9 +428,24 @@ class SceneBoundary extends ReactComponent<
 export default function RobotScene() {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [low, setLow] = useState(false);
+  const [pixelRatio, setPixelRatio] = useState(0.75);
   useEffect(() => {
     const c = document.createElement("canvas");
-    setSupported(!!(c.getContext("webgl2") || c.getContext("webgl")));
+    const context = c.getContext("webgl2") || c.getContext("webgl");
+    if (context) {
+      const info = context.getExtension("WEBGL_debug_renderer_info");
+      const renderer = info
+        ? String(context.getParameter(info.UNMASKED_RENDERER_WEBGL))
+        : "";
+      // Software WebGL should not first compile the expensive shadow/DPR path.
+      // GPU-capable browsers retain the existing quality and adaptive controls.
+      if (/swiftshader|llvmpipe|software/i.test(renderer)) {
+        setLow(true);
+        setPixelRatio(0.5);
+      }
+      context.getExtension("WEBGL_lose_context")?.loseContext();
+    }
+    setSupported(!!context);
   }, []);
   if (supported === null)
     return <div className="scene-loading">INITIALIZING CONSTRUCTION LAB</div>;
@@ -440,9 +454,9 @@ export default function RobotScene() {
       {supported ? (
         <Canvas
           shadows={!low}
-          dpr={low ? 0.75 : [1, 1.5]}
+          dpr={low ? pixelRatio : [1, 1.5]}
           camera={{ position: [2.8, 2, 3], fov: 35, near: 0.01, far: 70 }}
-          gl={{ antialias: true, powerPreference: "high-performance" }}
+          gl={{ antialias: !low, powerPreference: "high-performance" }}
           onPointerMissed={(event) => {
             if ((event.target as HTMLElement)?.tagName === "CANVAS")
               useLab.getState().set({ selected: null });
@@ -506,7 +520,12 @@ export default function RobotScene() {
           />
           <Robot />
           <CameraRig />
-          <Performance onSlow={() => setLow(true)} />
+          <Performance
+            onSlow={(ratio) => {
+              setLow(true);
+              setPixelRatio(ratio);
+            }}
+          />
         </Canvas>
       ) : (
         <div className="scene-fallback">

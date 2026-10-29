@@ -4,16 +4,16 @@ This tracks the delivered local slice, not a claim that all requested platform f
 
 | Directive priority | State | Evidence / remaining work |
 |---|---|---|
-| P0 real NVIDIA inference | Blocked externally | Backend adapter, discovery, accounting, validation, and explicit errors implemented. Missing API credential, authenticated catalog/model choice, verified prices, provider balance, and applied network access. |
-| P0 natural-language robot generation | Implemented, live path unverified | `/api/generate`; no fake output. Need a successful live model request and generated-model regression examples. |
+| P0 real NVIDIA inference | Verified | Authenticated Nemotron 3 Super via Token Factory. Model-matched, application-validated responses produce persisted historical status. Provider account balance remains unverified. |
+| P0 natural-language robot generation | Small concept verified live | Real browser prompt generated three validated box components, displayed their name, and inspected the actual returned component explanation. Complex configurations remain unverified under the 2,048-token output cap. |
 | P0 cinematic landing / construction | Implemented | Original procedural rover/arm geometry; shared 3D stage, materials, assembly DAG, interactive controls. Software WebGL is slow; GPU performance unverified. |
 | P0 component education | Implemented | Selection, focus, graph relationships, supplied design dimensions/mass, three explanation levels. Live tutoring depends on Nebius. |
-| P0 task interpretation | Adapter + manual workflow | Live task parser is unavailable without inference. Explicit manual workload assumptions work. |
+| P0 task interpretation | Adapter + manual workflow | Live task parser is configured but not separately exercised in this validation. Explicit manual workload assumptions work. |
 | P0 compute recommendations / comparison | Implemented local heuristic | Memory, power, vision, manipulation, environment, network. No measured inference or price claims. Limited catalog; manufacturer source retrieval needs current verification. |
 | P0 real simulation | Implemented | Actual MuJoCo four-wheel flat-floor drive, state playback, joint/force/contact data, trajectory, results export. Not arbitrary mission execution. |
 | P0 public working demo | Not deployed | Production build and deployment configuration prepared. Need selected hosting account/target and live secrets. No paid infrastructure launched. |
-| P1 quiz / flashcards | Implemented adapters + UI | Structured output validation, answer tracking and local persistence; live generation pending Nebius. |
-| P1 experiment history | Implemented | Local storage and JSON export. Supabase adapter needs project URL, anon key, migration, and test account. |
+| P1 quiz / flashcards | Implemented adapters + UI | Structured output validation, answer tracking and local persistence; live generation for these workflows remains untested. |
+| P1 experiment history | Implemented | Local storage and JSON export. Supabase adapter needs project URL, anon key, migration, test account, and UUID normalization for model-generated project IDs. |
 | P1 Vera Rubin explorer | Educational text only | Manufacturer reference, explicit cloud/onboard distinction. Dedicated 3D architecture explorer remains future work. |
 | P1 additional robot types | Generic validated geometry | Arm and rover references; Nemotron may generate other bounded primitives. Physics registry remains deliberately limited. |
 | P2 Isaac / robot learning / GPU benchmarks | Planned | No claims of working integration. |
@@ -28,7 +28,7 @@ Hardware catalogs distinguish generic illustrative envelopes from named product 
 
 Run commands in README. Live Nebius tests intentionally skip when no credential is available; mocked transport checks cover cache, budget reservation, accounting, and upstream failure handling, not provider success. Browser tests use the real local backend and real MuJoCo solver. Automated screenshots are saved under ignored `test-results/`; view them locally when reviewing design.
 
-## Current-session verification
+## Previous baseline verification
 
 - Backend: **35 passed, 1 skipped**. The skipped test is authenticated live Nebius model discovery. Transport fixtures are explicitly mocked and do not count as live provider verification.
 - Frontend components: **6 passed**, including shared task/component state and modal keyboard focus handling.
@@ -37,3 +37,17 @@ Run commands in README. Live Nebius tests intentionally skip when no credential 
 - Locked setup script: rerun successfully. Combined startup script: exercised successfully.
 - Functional readiness smoke: passed against both the development service and a separately started compiled production server. Each smoke ran 500 actual MuJoCo steps for one simulated second.
 - Manufacturer page retrieval, authenticated model generation, actual Token Factory balance/prices, live Supabase save/load, hosting deployment, GPU benchmarks, and fresh-task environment restoration remain unverified.
+
+
+## Application integration validation (2026-10-29)
+
+- A live browser generation passed after two diagnosed failures: the initial output exhausted its token cap, and generic JSON mode then failed the application schema. No automatic retries ran. The fix uses schema-constrained responses and bounded non-thinking structured generation. All reported usage was accounted for, including rejected outputs.
+- The successful live call used **2,314 total tokens**, estimated **$0.0010746** at the configured rates. The cumulative local ledger was **$0.0049401 / $1**, with no outstanding reservations. These are app estimates, not verified provider invoices or balance.
+- The live test asserted response display, actual generated-component inspection, refreshed historical verification, no API credential in browser traffic, and no direct browser request to the provider. The application never returns the provider credential to the client.
+- Focused tests cover pre-dispatch reservations, concurrent admission, settled charges, invalid usage, malformed output, cache behavior, model mismatch, schema validity, persisted status, and additive migration. See test output for current counts.
+- Software WebGL now starts without expensive shadows or multisample antialiasing. Adaptive quality progressively lowers pixel ratio under load instead of resetting it to a fixed value. Slow software-rendered interaction remains a validation limitation; the GPU-capable quality path remains unchanged. GPU frame-rate targets are still unverified.
+- Supabase is not configured or live-tested. The live model supplied `nemotron-camera-study` as its ID; the current Supabase primary key is UUID. Add a stable UUID mapping/migration before cloud sync. This task deliberately did not modify Supabase functionality.
+
+- Final validation: **59 backend tests**, **6 frontend component tests**, and **6 browser regression cases** passed (browser cases verified across targeted runs). The full 3D/physics desktop and mobile workflows use reduced-motion mode and a 240-second allowance for software WebGL; both passed after initial resource-related timeouts. The separate opt-in **real Nemotron browser test passed** in normal-motion mode. Type checking, production build, and the API/physics readiness smoke also passed.
+- Client-source/traffic checks and a scan of 26 production client assets found no provider credential exposure. No public deployment or dedicated GPU provisioning was performed.
+- A separate reduced-motion development-page check logged a hydration-attribute warning (without an uncaught page exception). This remains a UI/SSR follow-up before public deployment; this integration task does not claim a warning-free UI or production GPU performance.
