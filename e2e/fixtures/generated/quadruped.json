@@ -1,0 +1,633 @@
+{
+  "prompt": "Design a quadruped inspection robot: central body, four articulated legs with upper and lower links (two bounded hinge joints per leg), a thermal camera and onboard compute. Y is height; feet extend toward the floor. At most 12 parts. No walking simulation is implemented.",
+  "http_status": 200,
+  "response": {
+    "robot": {
+      "id": "b6c68e71-e81e-4424-bb50-32552f8c5a2d",
+      "name": "Quadruped Inspection Robot",
+      "purpose": "Inspect infrastructure using a thermally sensing quadruped platform with onboard processing.",
+      "classification": "legged",
+      "provenance": "nebius",
+      "dimensions_m": [
+        0.8,
+        0.5,
+        0.6
+      ],
+      "components": [
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "body",
+          "name": "Central Body",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.6,
+            0.2,
+            0.4
+          ],
+          "position": [
+            0.0,
+            0.25,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 8.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fl_upper",
+          "name": "Front Left Upper Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.25,
+            0.05
+          ],
+          "position": [
+            0.25,
+            0.25,
+            -0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fl_lower",
+          "name": "Front Left Lower Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.2,
+            0.05
+          ],
+          "position": [
+            0.25,
+            0.0,
+            -0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fr_upper",
+          "name": "Front Right Upper Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.25,
+            0.05
+          ],
+          "position": [
+            0.25,
+            0.25,
+            0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fr_lower",
+          "name": "Front Right Lower Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.2,
+            0.05
+          ],
+          "position": [
+            0.25,
+            0.0,
+            0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rl_upper",
+          "name": "Rear Left Upper Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.25,
+            0.05
+          ],
+          "position": [
+            -0.25,
+            0.25,
+            -0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rl_lower",
+          "name": "Rear Left Lower Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.2,
+            0.05
+          ],
+          "position": [
+            -0.25,
+            0.0,
+            -0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rr_upper",
+          "name": "Rear Right Upper Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.25,
+            0.05
+          ],
+          "position": [
+            -0.25,
+            0.25,
+            0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rr_lower",
+          "name": "Rear Right Lower Leg",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.2,
+            0.05
+          ],
+          "position": [
+            -0.25,
+            0.0,
+            0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "thermal_cam",
+          "name": "Thermal Camera",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.08,
+            0.06,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.35,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.3,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "compute_unit",
+          "name": "Onboard Compute",
+          "kind": "compute",
+          "shape": "box",
+          "size": [
+            0.12,
+            0.08,
+            0.08
+          ],
+          "position": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "power_unit",
+          "name": "Power Unit",
+          "kind": "power",
+          "shape": "box",
+          "size": [
+            0.1,
+            0.1,
+            0.08
+          ],
+          "position": [
+            0.0,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        }
+      ],
+      "joints": [
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fl_hip",
+          "component_id": "fl_upper",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -0.5,
+            1.0
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fl_knee",
+          "component_id": "fl_lower",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.5,
+            0.5
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fr_hip",
+          "component_id": "fr_upper",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -0.5,
+            1.0
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fr_knee",
+          "component_id": "fr_lower",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.5,
+            0.5
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rl_hip",
+          "component_id": "rl_upper",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -0.5,
+            1.0
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rl_knee",
+          "component_id": "rl_lower",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.5,
+            0.5
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rr_hip",
+          "component_id": "rr_upper",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -0.5,
+            1.0
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rr_knee",
+          "component_id": "rr_lower",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.5,
+            0.5
+          ]
+        }
+      ],
+      "degrees_of_freedom": 8,
+      "power_budget_w": 30.0,
+      "control_requirements": [
+        "Joint position control via onboard compute; no dynamic gait or walking simulation implemented."
+      ],
+      "operating_environment": "User-described environment; not physically validated",
+      "intended_tasks": [
+        "Thermal imaging",
+        "Onboard processing",
+        "Quadrupedal locomotion",
+        "Static inspection"
+      ],
+      "constraints": [],
+      "simulation_capabilities": [],
+      "unsupported_assumptions": [
+        "No dynamic walking or gait simulation",
+        "No obstacle avoidance capabilities",
+        "No sensor fusion beyond thermal imaging",
+        "No force feedback at feet",
+        "Limited to static inspection poses",
+        "No payload manipulation capability",
+        "No weatherproofing assumed",
+        "No docking or charging mechanism",
+        "No communication system modeled",
+        "No actuator models specified",
+        "No real-time control latency considered",
+        "No validation via simulation or testing"
+      ],
+      "capabilities": [
+        "Thermal imaging",
+        "Onboard processing",
+        "Quadrupedal locomotion",
+        "Static inspection"
+      ],
+      "mobility": "Four-legged stance with articulated hips and knees; feet contact ground via lower links.",
+      "control_architecture": "Joint position control via onboard compute; no dynamic gait or walking simulation implemented.",
+      "engineering_reasoning": "The design uses a central body to house compute and power, with four legs each having upper and lower links connected by bounded hinge joints for hip and knee articulation. The thermal camera is mounted front-facing on the body for inspection. All joints are hinge type with physiological limits to enable stable stances. Parts count is kept under 12 to meet constraints. No walking simulation is assumed or implied."
+    },
+    "assembly": [
+      {
+        "index": 0,
+        "name": "Central Body \u2192 Front Left Upper Leg \u2192 Front Left Lower Leg \u2192 Front Right Upper Leg \u2192 Front Right Lower Leg \u2192 Rear Left Upper Leg \u2192 Rear Left Lower Leg \u2192 Rear Right Upper Leg \u2192 Rear Right Lower Leg \u2192 Thermal Camera \u2192 Onboard Compute \u2192 Power Unit",
+        "component_ids": [
+          "body",
+          "fl_upper",
+          "fl_lower",
+          "fr_upper",
+          "fr_lower",
+          "rl_upper",
+          "rl_lower",
+          "rr_upper",
+          "rr_lower",
+          "thermal_cam",
+          "compute_unit",
+          "power_unit"
+        ]
+      }
+    ],
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "cached": false,
+    "request_id": "ec9107fc-49ad-4d03-af18-177867515e0a",
+    "assessment": {
+      "concept_valid": true,
+      "physics_valid": false,
+      "adapter": null,
+      "model_dofs": null,
+      "simulation_executed": false,
+      "limitations": [
+        "Only a four-wheel box-chassis rover is supported by the flat-floor adapter."
+      ]
+    }
+  },
+  "fixture_notice": "Recorded successful Nebius/Nemotron response. Offline browser replay is not a fresh provider request."
+}

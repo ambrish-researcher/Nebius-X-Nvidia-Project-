@@ -1,5 +1,7 @@
 # Implementation status
 
+Current core workflow: [live generation, input, request recovery, and support matrix](core-workflow.md). Older milestones below are historical.
+
 This tracks the delivered local slice, not a claim that all requested platform features are finished.
 
 The current ARISE cinematic extension is documented in the [milestone report](arise-milestone.md). Historical validation below refers to the preceding integration commit.

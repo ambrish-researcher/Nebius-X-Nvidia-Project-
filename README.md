@@ -4,7 +4,7 @@
 
 An immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.
 
-The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [cinematic milestone and limitations](docs/arise-milestone.md).
+The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [core workflow and live verification](docs/core-workflow.md), and the earlier [cinematic milestone](docs/arise-milestone.md).
 
 ## What works locally
 
@@ -18,7 +18,7 @@ The repository and internal package identifier remain unchanged. ARISE extends t
 
 ## NVIDIA integration and optional cloud storage
 
-**Nebius Token Factory / NVIDIA Nemotron:** backend-only authenticated model discovery, JSON responses, Pydantic validation, timeout, no automatic paid retry, persistent response cache, token usage, and a SQLite budget ledger. Generation, task interpretation, tutor, recommendations, result analysis, quiz, and flashcard workflows have adapters. A real browser prompt → Nemotron → validated three-component robot → 3D inspection workflow has been verified. An unavailable provider returns a visible error; there is no scripted AI fallback.
+**Nebius Token Factory / NVIDIA Nemotron:** backend-only authenticated model discovery, JSON responses, Pydantic validation, timeout, no automatic paid retry, persistent response cache, token usage, and a SQLite budget ledger. Generation, task interpretation, tutor, recommendations, result analysis, quiz, and flashcard workflows have adapters. Five distinct Nemotron designs have now been verified live and exercised through real backend cache entries in the browser; see the core workflow report. An unavailable provider returns a visible error; there is no scripted AI fallback.
 
 **Supabase:** email sign-in and user-JWT REST persistence with row-level security. Browser persistence works independently. Cloud sync requires a project and migration.
 

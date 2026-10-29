@@ -73,7 +73,7 @@ test("ARISE cinematic chapters connect to engineering, compute, and contextual l
   await page
     .getByLabel("What would you like to engineer?")
     .fill("A rover for a flat-floor engineering experiment");
-  await page.getByRole("button", { name: "Preview fixture robot" }).click();
+  await page.getByRole("button", { name: "Preview curated assembly" }).click();
   await expect(page.locator("main")).toHaveClass(/phase-transform/);
   await page.getByRole("button", { name: "Dismiss notification" }).click();
   await page.evaluate(() => scrollTo(0, 0));
@@ -145,11 +145,7 @@ test("revisions preserve evidence and use actual MuJoCo with bounded controller 
   test.setTimeout(300_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const usageBefore = await (await request.get("/api/usage")).json();
-  const rejected = await request.post("/api/generate", {
-    data: { prompt: "A preview rover on a flat floor" },
-  });
-  expect(rejected.status()).toBe(503);
-  expect((await rejected.json()).detail).toContain("blocks paid inference");
+  // The independent paid-preview guard is exercised by backend tests; no unmocked paid POST in this suite.
   await page.goto("/");
   await page
     .getByRole("button", { name: "Autonomous rover", exact: true })
@@ -261,6 +257,10 @@ test("cinematic playback pauses and advances automatically after explicit play",
     page.getByRole("button", { name: "Autonomous rover", exact: true }),
   ).toBeEnabled();
   await page.getByRole("button", { name: "Preview intro sequence" }).click();
+  await page.getByLabel("Cinematic speed").selectOption("0.5");
+  await page
+    .getByRole("button", { name: "Play cinematic", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Pause cinematic", exact: true })
     .click();
@@ -277,7 +277,7 @@ test("cinematic playback pauses and advances automatically after explicit play",
   await page
     .getByLabel("What would you like to engineer?")
     .fill("A rover for an educational flat-floor experiment");
-  await page.getByRole("button", { name: "Preview fixture robot" }).click();
+  await page.getByRole("button", { name: "Preview curated assembly" }).click();
   await expect(page.locator("main")).toHaveClass(/phase-transform/);
   await expect(
     page.getByRole("heading", {

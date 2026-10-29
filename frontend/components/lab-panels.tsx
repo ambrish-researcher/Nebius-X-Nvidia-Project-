@@ -21,6 +21,7 @@ import { useLab } from "../lib/store";
 import { api, formatError } from "../lib/api";
 import { HardwareAtlas } from "./hardware-atlas";
 import { ImprovementPanel } from "./improvement-panel";
+import { DesignEvidence, useAssessment } from "./design-evidence";
 import { Button } from "./ui/button";
 import type {
   Recommendation,
@@ -80,6 +81,7 @@ function Design() {
           ? "CURATED REFERENCE · NOT AI-GENERATED"
           : "NVIDIA MODEL · VALIDATED SCHEMA"}
       </div>
+      <DesignEvidence />
       <div className="stat-grid">
         <div>
           <strong>{robot.components.length.toString().padStart(2, "0")}</strong>
@@ -178,6 +180,12 @@ function Inspect() {
             ))}
           </div>
           <p>{part.function}</p>
+          {part.appearance && (
+            <p>
+              Conceptual material: {part.appearance.material}. Appearance is
+              illustrative; no physical rating is established.
+            </p>
+          )}
           {level !== "beginner" && (
             <>
               <h4>WHY THIS COMPONENT</h4>
@@ -204,7 +212,8 @@ function Inspect() {
                 {robot.joints
                   .filter((j) => j.component_id === part.id)
                   .map(
-                    (j) => `${j.type} joint; local axis ${j.axis.join(", ")}.`,
+                    (j) =>
+                      `${j.type} joint; local axis ${j.axis.join(", ")}; ${j.continuous ? "continuous" : `bounds ${j.limits_rad?.join(" to ") || "unspecified"}`}; drive limits ${j.force_limit_nm ?? "unspecified"} N·m, ${j.velocity_limit_rad_s ?? "unspecified"} rad/s.`,
                   )
                   .join(" ")}
               </p>
@@ -555,6 +564,7 @@ function Compute({ onError }: Props) {
   );
 }
 function Simulate({ onError }: Props) {
+  const { assessment } = useAssessment();
   const {
     robot,
     task,
@@ -611,14 +621,18 @@ function Simulate({ onError }: Props) {
         duration_s: duration,
         wheel_speed_rad_s: driveSpeed,
       });
-      set({ runs: [...runs.slice(-19), result], playhead: 0, playing: true });
+      set({
+        runs: [...runs.slice(-19), result],
+        playhead: 0,
+        playing: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      });
     } catch (e) {
       onError(formatError(e));
     } finally {
       setBusy(false);
     }
   };
-  const supported = robot?.classification === "rover";
+  const supported = !!assessment?.physics_valid;
   return (
     <>
       <Eyebrow>05 / PHYSICS LABORATORY</Eyebrow>

@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -34,6 +34,7 @@ import { CinematicOverlay } from "../components/cinematic-ui";
 import { useCinema } from "../lib/cinema";
 import { useMotionPreference } from "../lib/use-motion-preference";
 import { useLab } from "../lib/store";
+import { assertRenderable } from "../lib/renderable";
 import { api, formatError } from "../lib/api";
 import { useModalFocus } from "../lib/use-modal-focus";
 import { PanelContent, deriveAssembly } from "../components/lab-panels";
@@ -45,10 +46,12 @@ import type {
   Section,
   BackendHealth,
 } from "../lib/types";
-const RobotScene = dynamic(() => import("../components/robot-scene"), {
-  ssr: false,
-  loading: () => <div className="scene-loading">INITIALIZING LAB</div>,
-});
+const RobotScene = memo(
+  dynamic(() => import("../components/robot-scene"), {
+    ssr: false,
+    loading: () => <div className="scene-loading">INITIALIZING LAB</div>,
+  }),
+);
 const sections: {
   id: Section;
   label: string;
@@ -91,6 +94,12 @@ export default function Home() {
   } = useLab();
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
+  const [generationStatus, setGenerationStatus] = useState<any>(null);
+  const [pendingGeneration, setPendingGeneration] = useState<{
+    id: string;
+    prompt: string;
+  } | null>(null);
   const [message, setMessage] = useState("");
   const [connections, setConnections] = useState(false);
   const [generationOpen, setGenerationOpen] = useState(false);
@@ -192,14 +201,21 @@ export default function Home() {
     const timer = setTimeout(() => setMessage(""), 18000);
     return () => clearTimeout(timer);
   }, [message]);
-  const reference = async (family: string) => {
+  const reference = async (family: string, cinematic = false) => {
     setBusy(true);
     try {
       const r = await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
         "reference/" + family,
       );
       setRobot(r.robot, r.assembly);
-      set({ entered: true, section: "design" });
+      set({ entered: !cinematic, section: "design" });
+      if (cinematic) {
+        useCinema.getState().start("transform", r.assembly.length);
+        if (reduce) useCinema.getState().set({ time: 5, paused: true });
+        setMessage(
+          "Curated reference construction, not generated from your prompt.",
+        );
+      }
       setGenerationOpen(false);
     } catch (e) {
       error(formatError(e));
@@ -207,34 +223,77 @@ export default function Home() {
       setBusy(false);
     }
   };
-  const generate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (prompt.trim().length < 8) return;
-    setBusy(true);
+  const acceptGeneration = (r: {
+    robot: RobotSpec;
+    assembly: AssemblyStep[];
+  }) => {
+    assertRenderable(r.robot);
+    setRobot(r.robot, r.assembly);
+    set({
+      entered: true,
+      section: "design",
+      replay: useLab.getState().replay + 1,
+    });
+    setGenerationOpen(false);
+    sessionStorage.removeItem("arise-generation");
+    setPendingGeneration(null);
+    setGenerationStatus(null);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setMessage(
+      "Validated AI concept loaded. The 3D assembly is not proof of physics or task completion.",
+    );
+  };
+  const checkGeneration = async (saved = pendingGeneration) => {
+    if (!saved || inFlight.current) return;
     try {
-      const preview = useLab.getState().visualPreview;
-      const r = preview
-        ? await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
-            "reference/" +
-              (/arm|grip|manipulat/i.test(prompt) ? "arm" : "rover"),
-          )
-        : await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
-            "generate",
-            { prompt: prompt.trim() },
-          );
-      setRobot(r.robot, r.assembly);
-      set({ entered: false, section: "design", replay: replay + 1 });
-      useCinema.getState().start("transform", r.assembly.length);
-      if (reduce) useCinema.getState().set({ time: 5, paused: true });
-      setGenerationOpen(false);
-      setMessage(
-        preview
-          ? "Visual fixture: a curated reference, not an AI-generated response. No inference was sent."
-          : "NVIDIA model response validated. This remains a conceptual design; inspect its stated limitations.",
-      );
+      const result = await api<any>("generations/" + saved.id);
+      setGenerationStatus(result);
+      if (result.status === "succeeded" && result.result)
+        acceptGeneration(result.result);
     } catch (e) {
       error(formatError(e));
+    }
+  };
+  useEffect(() => {
+    if (loading) return;
+    try {
+      const saved = JSON.parse(
+        sessionStorage.getItem("arise-generation") || "null",
+      );
+      if (saved?.id && saved?.prompt) {
+        setPendingGeneration(saved);
+        void checkGeneration(saved);
+      }
+    } catch {}
+  }, [loading]);
+  const generate = async (e: React.FormEvent, explicitRetry = false) => {
+    e.preventDefault();
+    const text =
+      explicitRetry && pendingGeneration
+        ? pendingGeneration.prompt
+        : prompt.trim();
+    if (text.length < 8 || inFlight.current || busy || loading) return;
+    inFlight.current = true;
+    setBusy(true);
+    const saved = { id: crypto.randomUUID(), prompt: text };
+    setPendingGeneration(saved);
+    setGenerationStatus(null);
+    sessionStorage.setItem("arise-generation", JSON.stringify(saved));
+    try {
+      const r = await api<any>("generate", {
+        prompt: text,
+        request_id: saved.id,
+        retry_failed: explicitRetry,
+      });
+      if (r.robot) acceptGeneration(r);
+      else setGenerationStatus(r);
+    } catch (e) {
+      error(formatError(e));
+      try {
+        setGenerationStatus(await api<any>("generations/" + saved.id));
+      } catch {}
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   };
@@ -395,21 +454,26 @@ export default function Home() {
                   placeholder="A rover that sees. An arm that sorts. Something entirely new…"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  onFocus={() => useCinema.getState().set({ paused: true })}
+                  onPointerDown={(e) => e.stopPropagation()}
                   maxLength={6000}
                   onKeyDown={(e) => {
-                    if ((e.ctrlKey || e.metaKey) && e.key === "Enter")
+                    if (e.key !== "Tab" && e.key !== "Escape")
+                      e.stopPropagation();
+                    if (
+                      !e.repeat &&
+                      !e.nativeEvent.isComposing &&
+                      (e.ctrlKey || e.metaKey) &&
+                      e.key === "Enter"
+                    )
                       generate(e);
                   }}
                 />
                 <button
                   type="submit"
                   className="generate-button"
-                  aria-label={
-                    health?.visual_preview
-                      ? "Preview fixture robot"
-                      : "Generate robot with NVIDIA"
-                  }
-                  disabled={busy || prompt.trim().length < 8}
+                  aria-label="Generate robot with NVIDIA"
+                  disabled={busy || loading || prompt.trim().length < 8}
                 >
                   {busy ? (
                     <Loader2 className="spin" size={20} />
@@ -424,7 +488,7 @@ export default function Home() {
                 </span>
                 <span>
                   {health?.visual_preview ? (
-                    "REFERENCE FIXTURE / NO INFERENCE"
+                    "PAID INFERENCE BLOCKED IN VISUAL PREVIEW"
                   ) : (
                     <>
                       NEBIUS TOKEN FACTORY <i /> NVIDIA NEMOTRON
@@ -434,6 +498,9 @@ export default function Home() {
               </div>
             </form>
             <div className="prompt-suggestions">
+              <button disabled={busy} onClick={() => reference("rover", true)}>
+                Preview curated assembly
+              </button>
               <span>EXPLORE A REFERENCE</span>
               <button disabled={busy} onClick={() => reference("rover")}>
                 Autonomous rover <ArrowUpRight size={12} />
@@ -665,6 +732,31 @@ export default function Home() {
           </Button>
         </div>
       )}
+      {pendingGeneration && !busy && (
+        <div
+          className="generation-recovery"
+          role="region"
+          aria-label="Generation recovery"
+        >
+          <p>
+            Generation {generationStatus?.status || "status unknown"}.{" "}
+            {generationStatus?.error ||
+              "Check the saved request before submitting again."}
+          </p>
+          <p>
+            Billing: {generationStatus?.billing || "not yet confirmed"}.
+            Checking status never sends inference.
+          </p>
+          <button onClick={() => checkGeneration()}>
+            Check generation status
+          </button>
+          {generationStatus?.retry_allowed && (
+            <button onClick={(e) => generate(e, true)}>
+              Retry failed prompt (may incur cost)
+            </button>
+          )}
+        </div>
+      )}
       <AnimatePresence>
         {message && (
           <motion.div
@@ -720,9 +812,21 @@ export default function Home() {
               <label htmlFor="new-prompt">Describe your robot</label>
               <textarea
                 id="new-prompt"
+                data-autofocus
                 maxLength={6000}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Tab" && e.key !== "Escape")
+                    e.stopPropagation();
+                  if (
+                    !e.repeat &&
+                    !e.nativeEvent.isComposing &&
+                    (e.ctrlKey || e.metaKey) &&
+                    e.key === "Enter"
+                  )
+                    generate(e);
+                }}
                 placeholder="Describe the structure, purpose, and environment…"
                 autoFocus
               />
@@ -913,7 +1017,10 @@ function Connections({
           type="password"
           autoComplete="off"
           value={token}
-          onChange={(e) => setToken(e.target.value)}
+          onChange={(e) => {
+            setToken(e.target.value);
+            sessionStorage.setItem("lab-access-token", e.target.value);
+          }}
         />
         <Button variant="outline" disabled={busy} onClick={discover}>
           {busy ? (

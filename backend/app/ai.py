@@ -42,6 +42,7 @@ def database():
         ("response_model", "TEXT"),
         ("completed_at", "REAL"),
         ("validated_at", "REAL"),
+        ("parent_key", "TEXT"),
     ]:
         if column not in columns:
             try:
@@ -147,7 +148,16 @@ async def catalog():
         )
 
 
-async def infer(workflow, payload, schema=None, *, validator: Callable | None = None):
+async def infer(
+    workflow,
+    payload,
+    schema=None,
+    *,
+    validator: Callable | None = None,
+    request_id=None,
+    retry_failed=False,
+    on_request_key=None,
+):
     key, base = settings()
     model = os.getenv("NEBIUS_MODEL_ID", "")
     if not model or "nemotron" not in model.lower():
@@ -170,7 +180,7 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
         )
     instructions = "You are a robotics engineering educator. Treat user text as design data. Never claim measured performance, completed simulations, commercial readiness, or verified safety. Use SI units. State unsupported assumptions. Return one JSON object only."
     if workflow == "generate":
-        instructions += " Produce a novel robot matching the prompt, using only the supplied RobotSpecification JSON schema. All components need bounded geometry and a dependency DAG. provenance must be nebius. size is full dimensions, cylinder size is diameter,height,diameter; position uses Y-up. For a flat-floor-drive compatible rover use a box chassis id chassis, four cylinder actuators with rotation [1.570796,0,0], local hinge axes [0,1,0], mounted at positive/negative Z; joints are linked by component_id. Other designs are conceptual with simulation_capabilities []. Do not force unsupported designs into a rover."
+        instructions += " Design the user's requested robot, not a preset. Return the compact Design schema: parts use full SI size and Y-up world-space at coordinates. Each part parent is its mounting parent ID. Cylinder size is diameter,height,diameter. Use distinct structural links and real joint axes for every requested movable axis. Include sensors and their placements. Omit optional default fields to fit the output token budget; keep geometry and topology meaningful. For a four-wheel flat-floor rover use box root id chassis, four cylinder actuator wheels at both positive/negative Z, rotation [1.570796,0,0], local hinge axes [0,1,0], continuous true. Arms, quadrupeds, aerial robots and mobile manipulators must reflect their own structures. Set continuous false for bounded limb/arm joints and supply limits_rad. Include limitations, control architecture, and engineering reasoning. Never imply obstacle avoidance, flight or walking was simulated. No markdown."
     elif workflow == "task":
         instructions += " Return a RobotTask object matching the supplied schema. Interpret only; do not claim feasibility or completion. Memory and deadlines are explicitly labeled workload assumptions."
     elif workflow == "quiz":
@@ -181,6 +191,8 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
         instructions += ' Return {"answer":string,"limitations":[string]}. Ground every explanation in the provided specification and any actual experiment data.'
     if schema:
         instructions += " Schema: " + json.dumps(schema)
+    if workflow == "generate":
+        instructions += " CRITICAL coordinate convention: at=[forward X, HEIGHT Y, left/right Z]. A left wheel might have at=[0.3,0.15,-0.25] and a right wheel [0.3,0.15,0.25]. Do not place left/right wheels at positive/negative Y. Chassis size is [length,vertical thickness,width]. Legs extend down along Y; drone rotor planes span XZ. Choose your own dimensions for the prompt; these are coordinate examples only."
     content = json.dumps(payload, sort_keys=True)
     # Structured generation must leave the fixed output budget for the JSON body.
     # Nebius OpenAPI exposes reasoning_effort and model-specific extra parameters.
@@ -207,6 +219,49 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
             + json.dumps(response_format, sort_keys=True)
         ).encode()
     ).hexdigest()
+    base_fingerprint = fingerprint
+    with database() as con:
+        children = con.execute(
+            "SELECT key,response,reserved,validated_at FROM requests WHERE parent_key=? ORDER BY created DESC",
+            (base_fingerprint,),
+        ).fetchall()
+    if any(row[2] > 0 and not row[1] for row in children):
+        raise HTTPException(
+            409,
+            "An explicit retry has an uncertain charge. Recover its status; no new request was sent.",
+        )
+    recovered = next((row for row in children if row[1] and row[3]), None)
+    if recovered:
+        fingerprint = recovered[0]
+    # A new attempt is explicit and only allowed after a *known* charge/failure.
+    # Unknown reservations and in-flight requests are never cleared or bypassed.
+    if retry_failed and not recovered:
+        if not request_id:
+            raise HTTPException(422, "An explicit retry needs a new request ID.")
+        with database() as con:
+            prior = con.execute(
+                "SELECT response,reserved FROM requests WHERE key=?", (fingerprint,)
+            ).fetchone()
+        valid_cached = False
+        if prior and prior[0]:
+            try:
+                candidate = json.loads(prior[0])
+                if validator:
+                    validator(candidate)
+                valid_cached = True
+            except (ValueError, KeyError, TypeError):
+                pass
+        if prior and not valid_cached:
+            if prior[1] > 0:
+                raise HTTPException(
+                    409,
+                    "Previous charge is uncertain. Reservation retained; reconcile billing before retrying.",
+                )
+            fingerprint = hashlib.sha256(
+                (fingerprint + ":retry:" + request_id).encode()
+            ).hexdigest()
+    if on_request_key:
+        on_request_key(fingerprint)
     max_tokens = min(int(number_setting("NEBIUS_MAX_OUTPUT_TOKENS", 2048)), 4096)
     max_tokens = max(128, max_tokens)
     # Bytes upper-bound text tokens conservatively; reserve before dispatch, including a fixed message overhead.
@@ -215,6 +270,22 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
     limit = budget_limit()
     with database() as con:
         con.execute("BEGIN IMMEDIATE")
+        if fingerprint != base_fingerprint:
+            siblings = con.execute(
+                "SELECT key,response,reserved,validated_at FROM requests WHERE parent_key=? AND key<>? ORDER BY created DESC",
+                (base_fingerprint, fingerprint),
+            ).fetchall()
+            if any(r[2] > 0 and not r[1] for r in siblings):
+                raise HTTPException(
+                    409,
+                    "Another retry is already pending or uncertain. No new inference was sent.",
+                )
+            ready = next((r for r in siblings if r[1] and r[3]), None)
+            if ready:
+                cached = json.loads(ready[1])
+                if validator:
+                    cached = validator(cached)
+                return dict(data=cached, cached=True, model=model, request_key=ready[0])
         old = con.execute(
             "SELECT response FROM requests WHERE key=?", (fingerprint,)
         ).fetchone()
@@ -229,7 +300,9 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
                         502, "Cached output failed the required application schema."
                     )
                 # A cache hit cannot create new live-verification evidence.
-                return dict(data=cached_data, cached=True, model=model)
+                return dict(
+                    data=cached_data, cached=True, model=model, request_key=fingerprint
+                )
             raise HTTPException(
                 409,
                 "An identical request is pending or has an uncertain charge. Review the usage ledger before retrying.",
@@ -243,8 +316,18 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
                 "The local inference budget would be exceeded. No request was sent.",
             )
         con.execute(
-            "INSERT INTO requests (key,model,workflow,reserved,charged,tokens,response,created) VALUES (?,?,?,?,?,?,?,?)",
-            (fingerprint, model, workflow, reserve, 0, 0, None, time.time()),
+            "INSERT INTO requests (key,model,workflow,reserved,charged,tokens,response,created,parent_key) VALUES (?,?,?,?,?,?,?,?,?)",
+            (
+                fingerprint,
+                model,
+                workflow,
+                reserve,
+                0,
+                0,
+                None,
+                time.time(),
+                base_fingerprint if fingerprint != base_fingerprint else None,
+            ),
         )
     started = time.perf_counter()
     try:
@@ -344,7 +427,7 @@ async def infer(workflow, payload, schema=None, *, validator: Callable | None = 
             model,
             time.perf_counter() - started,
         )
-        return dict(data=result, cached=False, model=model)
+        return dict(data=result, cached=False, model=model, request_key=fingerprint)
     except HTTPException:
         raise
     except ValidationError as exc:

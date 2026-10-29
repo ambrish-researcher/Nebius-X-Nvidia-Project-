@@ -5,11 +5,13 @@ import { useLab } from "../lib/store";
 import { api, formatError } from "../lib/api";
 import type { SimulationRun } from "../lib/types";
 import { Button } from "./ui/button";
+import { useAssessment } from "./design-evidence";
 export function ImprovementPanel({
   onError,
 }: {
   onError: (s: string) => void;
 }) {
+  const { assessment } = useAssessment();
   const {
     robot,
     task,
@@ -156,10 +158,7 @@ export function ImprovementPanel({
             maxLength={1000}
           />
         </label>
-        <Button
-          disabled={busy || robot.classification !== "rover"}
-          onClick={run}
-        >
+        <Button disabled={busy || !assessment?.physics_valid} onClick={run}>
           {busy
             ? "Solving rigid-body dynamics…"
             : "Run revised physics experiment"}{" "}

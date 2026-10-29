@@ -1,0 +1,629 @@
+{
+  "prompt": "Design a warehouse mobile manipulator: four-wheel chassis plus a three-link articulated arm, gripper and depth sensor. Y is height, left/right is Z. At most 12 parts. Explain manipulation and navigation controllers still required.",
+  "http_status": 200,
+  "response": {
+    "robot": {
+      "id": "ebf83a30-7730-493c-9580-c47b14c75890",
+      "name": "WarehouseMobileManipulator",
+      "purpose": "Navigate warehouse aisles and manipulate items on shelves using a three-link arm with gripper and depth sensing.",
+      "classification": "mobile_manipulator",
+      "provenance": "nebius",
+      "dimensions_m": [
+        1.2,
+        1.8,
+        0.8
+      ],
+      "components": [
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "chassis",
+          "name": "Chassis Base",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            1.0,
+            0.2,
+            0.7
+          ],
+          "position": [
+            0.0,
+            0.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 25.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fl_wheel",
+          "name": "Front Left Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.4,
+            0.0,
+            -0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fr_wheel",
+          "name": "Front Right Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.4,
+            0.0,
+            0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rl_wheel",
+          "name": "Rear Left Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            -0.4,
+            0.0,
+            -0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rr_wheel",
+          "name": "Rear Right Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            -0.4,
+            0.0,
+            0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "arm_base",
+          "name": "Arm Base Mount",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.0,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link1",
+          "name": "Arm Link 1",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.05,
+            0.3,
+            0.05
+          ],
+          "position": [
+            0.0,
+            0.35,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link2",
+          "name": "Arm Link 2",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.05,
+            0.25,
+            0.05
+          ],
+          "position": [
+            0.0,
+            0.5,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.8,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link3",
+          "name": "Arm Link 3",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.05,
+            0.2,
+            0.05
+          ],
+          "position": [
+            0.0,
+            0.65,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.6,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "gripper",
+          "name": "Parallel Gripper",
+          "kind": "actuator",
+          "shape": "box",
+          "size": [
+            0.1,
+            0.05,
+            0.06
+          ],
+          "position": [
+            0.0,
+            0.75,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "depth_sensor",
+          "name": "Depth Sensor",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "position": [
+            0.0,
+            0.8,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "imu",
+          "name": "IMU Unit",
+          "kind": "sensor",
+          "shape": "sphere",
+          "size": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "position": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.1,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        }
+      ],
+      "joints": [
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fl",
+          "component_id": "fl_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fr",
+          "component_id": "fr_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rl",
+          "component_id": "rl_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rr",
+          "component_id": "rr_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_arm1",
+          "component_id": "link1",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_arm2",
+          "component_id": "link2",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_arm3",
+          "component_id": "link3",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_gripper",
+          "component_id": "gripper",
+          "type": "slide",
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "limits_rad": [
+            -0.05,
+            0.05
+          ]
+        }
+      ],
+      "degrees_of_freedom": 8,
+      "power_budget_w": 30.0,
+      "control_requirements": [
+        "Hierarchical: low-level wheel velocity PID for odometry; mid-level trajectory follower (pure pursuit); high-level task planner (ROS Behavior Tree). Arm uses joint-space inverse kinematics with PID; gripper uses force-limited position control."
+      ],
+      "operating_environment": "User-described environment; not physically validated",
+      "intended_tasks": [
+        "Warehouse navigation",
+        "Shelf item retrieval",
+        "Object grasping",
+        "Depth-based alignment"
+      ],
+      "constraints": [],
+      "simulation_capabilities": [],
+      "unsupported_assumptions": [
+        "No active suspension",
+        "Gripper force sensing not included",
+        "Depth sensor limited to short range",
+        "No obstacle avoidance logic implemented",
+        "Control assumes flat floor",
+        "Wheel slip not compensated",
+        "Arm payload limited to 2kg",
+        "No battery modeling included"
+      ],
+      "capabilities": [
+        "Warehouse navigation",
+        "Shelf item retrieval",
+        "Object grasping",
+        "Depth-based alignment"
+      ],
+      "mobility": "Differential drive via four independently actuated wheels; skid-steer turning.",
+      "control_architecture": "Hierarchical: low-level wheel velocity PID for odometry; mid-level trajectory follower (pure pursuit); high-level task planner (ROS Behavior Tree). Arm uses joint-space inverse kinematics with PID; gripper uses force-limited position control.",
+      "engineering_reasoning": "Chassis provides stable base; four-wheel differential drive enables tight turns in aisles. Arm mounted vertically to maximize reach without increasing footprint. Three-link arm balances dexterity and control complexity. Gripper aligned with arm end-effector for vertical pick/place. Depth sensor mounted above gripper for object detection and alignment. IMU fused with wheel encoders for drift correction. All joints use hinge axes except gripper slide for simplicity and reliability."
+    },
+    "assembly": [
+      {
+        "index": 0,
+        "name": "Chassis Base \u2192 Front Left Wheel \u2192 Front Right Wheel \u2192 Rear Left Wheel \u2192 Rear Right Wheel \u2192 Arm Base Mount \u2192 Arm Link 1 \u2192 Arm Link 2 \u2192 Arm Link 3 \u2192 Parallel Gripper \u2192 Depth Sensor \u2192 IMU Unit",
+        "component_ids": [
+          "chassis",
+          "fl_wheel",
+          "fr_wheel",
+          "rl_wheel",
+          "rr_wheel",
+          "arm_base",
+          "link1",
+          "link2",
+          "link3",
+          "gripper",
+          "depth_sensor",
+          "imu"
+        ]
+      }
+    ],
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "cached": false,
+    "request_id": "8e5bc10c-2f78-496a-b942-c848bcf5a5c9",
+    "assessment": {
+      "concept_valid": true,
+      "physics_valid": false,
+      "adapter": null,
+      "model_dofs": null,
+      "simulation_executed": false,
+      "limitations": [
+        "Only a four-wheel box-chassis rover is supported by the flat-floor adapter."
+      ]
+    }
+  },
+  "fixture_notice": "Recorded successful Nebius/Nemotron response. Offline browser replay is not a fresh provider request."
+}

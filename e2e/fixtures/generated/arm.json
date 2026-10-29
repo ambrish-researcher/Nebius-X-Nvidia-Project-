@@ -1,0 +1,488 @@
+{
+  "prompt": "Design a fixed-base six-axis robotic arm: base plus six serial links with six bounded revolute joints, a fixed gripper and wrist camera. Use Y-up world coordinates, Y is height. At most 9 parts. Explain its payload and control limitations.",
+  "http_status": 200,
+  "response": {
+    "robot": {
+      "id": "16ba882c-25e6-409d-a629-f6aab152e021",
+      "name": "FixedBaseSixAxisArm",
+      "purpose": "Serial manipulator for precision positioning tasks requiring six degrees of freedom orientation control",
+      "classification": "arm",
+      "provenance": "nebius",
+      "dimensions_m": [
+        0.8,
+        0.9,
+        0.4
+      ],
+      "components": [
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "base",
+          "name": "Mounting Base",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.2,
+            0.05,
+            0.2
+          ],
+          "position": [
+            0.0,
+            0.025,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 5.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link1",
+          "name": "First Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.3,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link2",
+          "name": "Second Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.25,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.425,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link3",
+          "name": "Third Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.2,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.575,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.8,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link4",
+          "name": "Fourth Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.15,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.7,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.6,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "link5",
+          "name": "Fifth Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.1,
+            0.04
+          ],
+          "position": [
+            0.0,
+            0.8,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.4,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "ee",
+          "name": "End Effector",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.06,
+            0.05,
+            0.06
+          ],
+          "position": [
+            0.0,
+            0.875,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.3,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "wrist_cam",
+          "name": "Wrist Camera",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.02,
+            0.02,
+            0.02
+          ],
+          "position": [
+            0.03,
+            0.885,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.05,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "gripper",
+          "name": "Fixed Gripper",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.03,
+            0.08
+          ],
+          "position": [
+            0.0,
+            0.89,
+            -0.04
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        }
+      ],
+      "joints": [
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j1",
+          "component_id": "link1",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -2.09,
+            2.09
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j2",
+          "component_id": "link2",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j3",
+          "component_id": "link3",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -2.09,
+            2.09
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j4",
+          "component_id": "link4",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -3.14,
+            3.14
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j5",
+          "component_id": "link5",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j6",
+          "component_id": "ee",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -2.09,
+            2.09
+          ]
+        }
+      ],
+      "degrees_of_freedom": 6,
+      "power_budget_w": 30.0,
+      "control_requirements": [
+        "Position control via joint space PID with feedforward torque compensation; no force control or impedance modulation implemented"
+      ],
+      "operating_environment": "User-described environment; not physically validated",
+      "intended_tasks": [
+        "Six-DOF positioning",
+        "Wrist-mounted sensing",
+        "Precision gripping"
+      ],
+      "constraints": [],
+      "simulation_capabilities": [],
+      "unsupported_assumptions": [
+        "Payload capacity limited to 0.5 kg due to distal link deflection and joint torque constraints",
+        "No force/torque sensing prevents adaptive grasping or contact task execution",
+        "Single-plane joint axes restrict motion to cylindrical workspace (constant Y-radius reach)",
+        "Fixed gripper lacks actuation modeling; assumes external actuation system",
+        "Control architecture lacks trajectory optimization or singularity avoidance",
+        "Joint velocity and torque limits unspecified in design; would require motor selection for realization",
+        "Wrist camera placement creates blind spot along -X axis due to physical occlusion by gripper mounting flange"
+      ],
+      "capabilities": [
+        "Six-DOF positioning",
+        "Wrist-mounted sensing",
+        "Precision gripping"
+      ],
+      "mobility": "Not specified by the model",
+      "control_architecture": "Position control via joint space PID with feedforward torque compensation; no force control or impedance modulation implemented",
+      "engineering_reasoning": "The arm uses a vertical stack of revolute joints about the Y-axis to achieve azimuth-like motion for reach in XZ plane while varying link lengths provide elevation capability. Joint axes aligned with global Y simplify kinematics for educational demonstration. Link lengths decrease distally to manage inertia and deflection. Base provides stable mounting. Wrist camera placed offset to avoid occlusion by gripper. Fixed gripper assumes passive grasping mechanism (e.g., vacuum or mechanical closure) without actuation, hence not modeled as actuator. Six bounded revolute joints satisfy serial chain DOF requirement. Parts count stays within limit by combining gripper and camera as separate sensor/structure rather than actuated components."
+    },
+    "assembly": [
+      {
+        "index": 0,
+        "name": "Mounting Base \u2192 First Link \u2192 Second Link \u2192 Third Link \u2192 Fourth Link \u2192 Fifth Link \u2192 End Effector \u2192 Wrist Camera \u2192 Fixed Gripper",
+        "component_ids": [
+          "base",
+          "link1",
+          "link2",
+          "link3",
+          "link4",
+          "link5",
+          "ee",
+          "wrist_cam",
+          "gripper"
+        ]
+      }
+    ],
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "cached": false,
+    "request_id": "55dc1886-2279-422f-8977-06fa58e537fb",
+    "assessment": {
+      "concept_valid": true,
+      "physics_valid": false,
+      "adapter": null,
+      "model_dofs": null,
+      "simulation_executed": false,
+      "limitations": [
+        "Only a four-wheel box-chassis rover is supported by the flat-floor adapter."
+      ]
+    }
+  },
+  "fixture_notice": "Recorded successful Nebius/Nemotron response. Offline browser replay is not a fresh provider request."
+}

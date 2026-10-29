@@ -25,11 +25,11 @@ export function CinematicOverlay() {
   if (entered) return null;
   const jump = (p: CinemaPhase) => {
     useCinema.getState().start(p, useLab.getState().assembly.length);
-    if (reduced)
-      useCinema.getState().set({
-        paused: true,
-        time: p === "intro" ? 1.5 : p === "transform" ? 5 : 0,
-      });
+    // A chapter preview is an inspection point; playback is an explicit action.
+    useCinema.getState().set({
+      paused: true,
+      time: p === "intro" ? 1.5 : p === "transform" ? 5 : 0,
+    });
   };
   return (
     <>

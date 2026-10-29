@@ -50,7 +50,10 @@ function Part({
   } = useLab();
   const start = useRef(0);
   const elapsed = useRef(0);
-  const isWheel = part.kind === "actuator" && part.shape === "cylinder";
+  const isWheel =
+    part.kind === "actuator" &&
+    part.shape === "cylinder" &&
+    /wheel/i.test(part.id + " " + part.name);
   const [hover, setHover] = useState(false);
   useEffect(() => {
     start.current = 0;
@@ -115,21 +118,22 @@ function Part({
     ? "#b9ef66"
     : hover
       ? "#b9c3bc"
-      : part.kind === "compute"
-        ? "#394c30"
-        : part.kind === "power"
-          ? "#252e29"
-          : part.kind === "sensor"
-            ? "#68736c"
-            : part.kind === "actuator"
-              ? "#292d29"
-              : "#a0a7a0";
+      : part.appearance?.color ||
+        (part.kind === "compute"
+          ? "#394c30"
+          : part.kind === "power"
+            ? "#252e29"
+            : part.kind === "sensor"
+              ? "#68736c"
+              : part.kind === "actuator"
+                ? "#292d29"
+                : "#a0a7a0");
   const [w, h, d] = part.size;
   const material = (
     <meshStandardMaterial
       color={color}
-      metalness={isWheel ? 0.25 : 0.75}
-      roughness={isWheel ? 0.7 : 0.3}
+      metalness={part.appearance?.metalness ?? (isWheel ? 0.25 : 0.75)}
+      roughness={part.appearance?.roughness ?? (isWheel ? 0.7 : 0.3)}
       transparent={transparent}
       opacity={transparent ? 0.3 : 1}
       emissive={selectedPart ? "#385318" : "#000000"}
@@ -344,6 +348,7 @@ function Robot() {
 function CameraRig() {
   const controls = useRef<OrbitControlsType>(null);
   const { camera, selected, robot, section, entered } = useLab();
+  const runId = useLab((s) => s.runs.at(-1)?.id);
   const { camera: threeCamera, size } = useThree();
   const destination = useRef(new THREE.Vector3(2.3, 1.7, 2.5));
   const target = useRef(new THREE.Vector3(0, 0.4, 0));
@@ -371,7 +376,15 @@ function CameraRig() {
         number,
       ]),
     );
-    const scale = robot ? Math.max(...robot.dimensions_m, 1) : 1.2;
+    const scale = robot
+      ? Math.max(
+          ...robot.dimensions_m,
+          ...robot.components.flatMap((c) =>
+            c.position.map((n, i) => Math.abs(n) * 2 + c.size[i]),
+          ),
+          1,
+        )
+      : 1.2;
     destination.current
       .copy(target.current)
       .add(
@@ -391,6 +404,17 @@ function CameraRig() {
         .copy(target.current)
         .add(new THREE.Vector3(3.1, 1.8, 4.1));
     }
+    const lab = useLab.getState();
+    const pose =
+      section === "simulate"
+        ? lab.runs.at(-1)?.frames[lab.playhead]?.position
+        : undefined;
+    if (pose) {
+      const offset = new THREE.Vector3(...pose);
+      destination.current.add(offset);
+      target.current.add(offset);
+      previousPosition.current.copy(offset);
+    }
     animating.current = true;
   }, [
     camera,
@@ -398,6 +422,7 @@ function CameraRig() {
     robot,
     section,
     entered,
+    runId,
     size.width,
     size.height,
     threeCamera,
@@ -434,7 +459,7 @@ function CameraRig() {
       enabled={entered}
       makeDefault
       minDistance={0.5}
-      maxDistance={18}
+      maxDistance={160}
       maxPolarAngle={Math.PI / 2 - 0.015}
       enableDamping
       dampingFactor={0.07}
@@ -542,7 +567,7 @@ export default function RobotScene() {
           frameloop={staticFrame ? "demand" : "always"}
           shadows={!low}
           dpr={low ? pixelRatio : [1, 1.5]}
-          camera={{ position: [2.8, 2, 3], fov: 35, near: 0.01, far: 70 }}
+          camera={{ position: [2.8, 2, 3], fov: 35, near: 0.01, far: 300 }}
           gl={{ antialias: !low, powerPreference: "high-performance" }}
           onPointerMissed={(event) => {
             if ((event.target as HTMLElement)?.tagName === "CANVAS")
@@ -620,6 +645,7 @@ export default function RobotScene() {
           <CinematicWorld />
           <ComputeSculpture />
           <CameraRig />
+          <RenderEvidence />
           <Performance
             staticFrame={staticFrame}
             onSlow={(ratio) => {
@@ -639,4 +665,22 @@ export default function RobotScene() {
       )}
     </SceneBoundary>
   );
+}
+
+function RenderEvidence() {
+  const { invalidate } = useThree();
+  const previous = useRef<unknown>(null),
+    frames = useRef(0);
+  useFrame(() => {
+    const s = useLab.getState();
+    if (!s.entered || !s.robot || s.renderedRobotId === s.robot.id) return;
+    if (previous.current !== s.robot) {
+      previous.current = s.robot;
+      frames.current = 0;
+    }
+    frames.current++;
+    if (frames.current >= 2) s.set({ renderedRobotId: s.robot.id });
+    else invalidate();
+  });
+  return null;
 }

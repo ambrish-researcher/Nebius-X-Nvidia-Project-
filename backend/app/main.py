@@ -21,6 +21,10 @@ from .models import (
 from .reference import reference_robot, assembly_steps
 from .hardware import HARDWARE, recommend
 from .simulation import simulate
+from .simulation import assess
+from .generation import Design, validate_design
+from . import request_jobs
+from starlette.responses import JSONResponse
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 app = FastAPI(title="Robotics Intelligence Platform", version="0.1.0")
@@ -39,7 +43,11 @@ async def deployment_guard(request: Request, call_next):
     # Public deployments must set an access token before enabling billable AI.
     from starlette.responses import JSONResponse
 
-    protected = request.url.path in ["/api/generate", "/api/ai", "/api/models"]
+    protected = request.url.path in [
+        "/api/generate",
+        "/api/ai",
+        "/api/models",
+    ] or request.url.path.startswith("/api/generations/")
     token = os.getenv("LAB_ACCESS_TOKEN")
     if protected and (token or os.getenv("LAB_ENV") == "production"):
         if not token or not secrets.compare_digest(
@@ -128,8 +136,7 @@ async def models():
 
 
 def validate_robot(data):
-    data = {**data, "provenance": "nebius"}
-    return RobotSpecification.model_validate(data).model_dump(mode="json")
+    return validate_design(data)
 
 
 def validate_workflow(workflow, data):
@@ -167,19 +174,63 @@ def validate_workflow(workflow, data):
 
 @app.post("/api/generate")
 async def generate(req: GenerationRequest):
-    result = await ai.infer(
-        "generate",
-        {"prompt": req.prompt},
-        RobotSpecification.model_json_schema(),
-        validator=validate_robot,
-    )
-    robot = RobotSpecification.model_validate(result["data"])
-    return dict(
-        robot=robot,
-        assembly=assembly_steps(robot),
-        model=result["model"],
-        cached=result["cached"],
-    )
+    if req.request_id and not request_jobs.begin(
+        req.request_id, req.prompt, req.retry_failed
+    ):
+        existing = request_jobs.status(req.request_id)
+        if existing["status"] == "succeeded":
+            return existing["result"]
+        return JSONResponse(
+            existing, status_code=202 if existing["status"] == "pending" else 409
+        )
+    try:
+        request_jobs.guard_unresolved(req.request_id, req.prompt)
+        result = await ai.infer(
+            "generate",
+            {"prompt": req.prompt},
+            Design.model_json_schema(),
+            validator=validate_robot,
+            request_id=req.request_id,
+            retry_failed=req.retry_failed,
+            on_request_key=(lambda key: request_jobs.link(req.request_id, key))
+            if req.request_id
+            else None,
+        )
+        robot = RobotSpecification.model_validate(result["data"])
+        if req.request_id and result.get("request_key"):
+            request_jobs.link(req.request_id, result["request_key"])
+        output = dict(
+            robot=robot.model_dump(mode="json"),
+            assembly=assembly_steps(robot),
+            model=result["model"],
+            cached=result["cached"],
+            request_id=req.request_id,
+            assessment=assess(robot),
+        )
+        if req.request_id:
+            request_jobs.finish(req.request_id, result=output)
+        return output
+    except HTTPException as exc:
+        if req.request_id:
+            request_jobs.finish(req.request_id, error=str(exc.detail))
+            return JSONResponse(
+                {
+                    "detail": exc.detail,
+                    "generation": request_jobs.status(req.request_id),
+                },
+                status_code=exc.status_code,
+            )
+        raise
+
+
+@app.get("/api/generations/{request_id}")
+def generation_status(request_id: str):
+    return request_jobs.status(request_id)
+
+
+@app.post("/api/assess")
+def assess_design(robot: RobotSpecification):
+    return assess(robot)
 
 
 @app.post("/api/ai")

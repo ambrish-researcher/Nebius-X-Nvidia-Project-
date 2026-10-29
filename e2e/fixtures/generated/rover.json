@@ -1,0 +1,492 @@
+{
+  "prompt": "Design an autonomous obstacle-avoiding rover with four drive wheels, a range sensor and camera. Y is HEIGHT, Z is left/right: wheels must have both positive and negative Z, positive Y; chassis id chassis. Include 10 or fewer parts. State unimplemented navigation and perception controllers explicitly.",
+  "http_status": 200,
+  "response": {
+    "robot": {
+      "id": "b07b79e5-0aba-4898-925b-2ffe8cd89e55",
+      "name": "Autonomous Obstacle-Avoiding Rover",
+      "purpose": "An autonomous ground vehicle designed to navigate flat terrain while detecting and avoiding obstacles using range sensing and visual input.",
+      "classification": "rover",
+      "provenance": "nebius",
+      "dimensions_m": [
+        1.2,
+        0.3,
+        0.8
+      ],
+      "components": [
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "chassis",
+          "name": "Main Chassis",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            1.0,
+            0.2,
+            0.6
+          ],
+          "position": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 8.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fl_wheel",
+          "name": "Front Left Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.4,
+            0.05,
+            -0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "fr_wheel",
+          "name": "Front Right Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.4,
+            0.05,
+            0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rl_wheel",
+          "name": "Rear Left Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            -0.4,
+            0.05,
+            -0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "rr_wheel",
+          "name": "Rear Right Wheel",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            -0.4,
+            0.05,
+            0.3
+          ],
+          "rotation": [
+            1.570796,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "range_sensor",
+          "name": "Forward Range Sensor",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.05,
+            0.1
+          ],
+          "position": [
+            0.5,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.2,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "camera",
+          "name": "Forward Camera",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "position": [
+            0.5,
+            0.25,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.1,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "compute_unit",
+          "name": "Onboard Compute",
+          "kind": "compute",
+          "shape": "box",
+          "size": [
+            0.1,
+            0.05,
+            0.1
+          ],
+          "position": [
+            0.0,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.5,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "power_unit",
+          "name": "Battery Pack",
+          "kind": "power",
+          "shape": "box",
+          "size": [
+            0.2,
+            0.1,
+            0.2
+          ],
+          "position": [
+            0.0,
+            0.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Unspecified conceptual material",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "controller_unit",
+          "name": "Motion Controller",
+          "kind": "controller",
+          "shape": "box",
+          "size": [
+            0.08,
+            0.05,
+            0.08
+          ],
+          "position": [
+            0.0,
+            0.25,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.3,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        }
+      ],
+      "joints": [
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fl",
+          "component_id": "fl_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_fr",
+          "component_id": "fr_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rl",
+          "component_id": "rl_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_rr",
+          "component_id": "rr_wheel",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        }
+      ],
+      "degrees_of_freedom": 4,
+      "power_budget_w": 30.0,
+      "control_requirements": [
+        "Unimplemented navigation controller: no path planning or obstacle avoidance logic defined. Unimplemented perception controller: no sensor fusion or object detection algorithms specified."
+      ],
+      "operating_environment": "User-described environment; not physically validated",
+      "intended_tasks": [
+        "four-wheel drive",
+        "forward obstacle detection",
+        "visual sensing",
+        "onboard processing"
+      ],
+      "constraints": [],
+      "simulation_capabilities": [],
+      "unsupported_assumptions": [
+        "No obstacle avoidance algorithm implemented",
+        "No perception pipeline for sensor data",
+        "No localization or mapping capability",
+        "No slip compensation or terrain adaptation",
+        "No fault tolerance in drive system",
+        "No power management or sleep states",
+        "No communication interfaces for remote operation",
+        "No mechanical suspension for uneven terrain",
+        "No sensor validation or calibration routines",
+        "No emergency stop or safety interlocks"
+      ],
+      "capabilities": [
+        "four-wheel drive",
+        "forward obstacle detection",
+        "visual sensing",
+        "onboard processing"
+      ],
+      "mobility": "Skid-steer locomotion via four independently driven wheels; no steering actuators implemented.",
+      "control_architecture": "Unimplemented navigation controller: no path planning or obstacle avoidance logic defined. Unimplemented perception controller: no sensor fusion or object detection algorithms specified.",
+      "engineering_reasoning": "The chassis provides a stable base for mounting components. Four cylindrical wheels are placed at symmetric \u00b1Z positions for left/right separation and positive Y for ground contact, each rotated 90\u00b0 about X to align rotation axis with Y (hinge axis [0,1,0]) for proper drive motion. The range sensor and camera are mounted front-center at elevated Y to maximize forward field of view. Compute, power, and controller units are stacked vertically along Y above the chassis to lower center of mass and protect from ground effects. All wheel joints are continuous hinges to allow unrestricted rotation for drive. Sensor and compute placements assume unimplemented perception and navigation stacks; no SLAM, mapping, or obstacle avoidance logic is included. Design adheres to Y-up coordinate convention with Z as lateral axis."
+    },
+    "assembly": [
+      {
+        "index": 0,
+        "name": "Main Chassis \u2192 Front Left Wheel \u2192 Front Right Wheel \u2192 Rear Left Wheel \u2192 Rear Right Wheel \u2192 Forward Range Sensor \u2192 Forward Camera \u2192 Onboard Compute \u2192 Battery Pack \u2192 Motion Controller",
+        "component_ids": [
+          "chassis",
+          "fl_wheel",
+          "fr_wheel",
+          "rl_wheel",
+          "rr_wheel",
+          "range_sensor",
+          "camera",
+          "compute_unit",
+          "power_unit",
+          "controller_unit"
+        ]
+      }
+    ],
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "cached": false,
+    "request_id": "de8589e5-85c7-40e1-a86d-933e0b5bbfb6",
+    "assessment": {
+      "concept_valid": true,
+      "physics_valid": true,
+      "adapter": "flat-floor-drive",
+      "model_dofs": 10,
+      "simulation_executed": false,
+      "limitations": [
+        "Compiled MuJoCo model only; no experiment has run.",
+        "Forward wheel control only; no obstacle avoidance, perception, or mission solver."
+      ]
+    }
+  },
+  "fixture_notice": "Recorded successful Nebius/Nemotron response. Offline browser replay is not a fresh provider request."
+}

@@ -10,7 +10,15 @@ class StrictModel(BaseModel):
 Vec3 = tuple[float, float, float]
 
 
+class Appearance(StrictModel):
+    color: str = Field(default="#a0a7a0", pattern=r"^#[0-9a-fA-F]{6}$")
+    material: str = Field(default="Unspecified conceptual material", max_length=200)
+    metalness: float = Field(default=0.6, ge=0, le=1)
+    roughness: float = Field(default=0.35, ge=0, le=1)
+
+
 class Component(StrictModel):
+    appearance: Appearance | None = None
     id: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,47}$")
     name: str = Field(min_length=1, max_length=100)
     kind: Literal["structure", "actuator", "sensor", "power", "compute", "controller"]
@@ -47,6 +55,10 @@ class Component(StrictModel):
 
 
 class Joint(StrictModel):
+    parent_component_id: str | None = None
+    continuous: bool = True
+    force_limit_nm: float = Field(default=2, gt=0, le=100)
+    velocity_limit_rad_s: float = Field(default=8, gt=0, le=8)
     id: str
     component_id: str
     type: Literal["fixed", "hinge", "slide"]
@@ -72,7 +84,13 @@ class RobotSpecification(StrictModel):
     name: str = Field(min_length=1, max_length=100)
     purpose: str = Field(max_length=2000)
     classification: Literal[
-        "rover", "arm", "legged", "aerial", "underwater", "conceptual"
+        "rover",
+        "arm",
+        "legged",
+        "mobile_manipulator",
+        "aerial",
+        "underwater",
+        "conceptual",
     ]
     provenance: Literal["reference", "nebius"]
     dimensions_m: Vec3
@@ -86,6 +104,10 @@ class RobotSpecification(StrictModel):
     constraints: list[str]
     simulation_capabilities: list[str]
     unsupported_assumptions: list[str]
+    capabilities: list[str] = Field(default_factory=list, max_length=12)
+    mobility: str = Field(default="Not specified", max_length=1000)
+    control_architecture: str = Field(default="Not specified", max_length=1000)
+    engineering_reasoning: str = Field(default="", max_length=2000)
 
     @model_validator(mode="after")
     def validate_graph(self):
@@ -106,6 +128,28 @@ class RobotSpecification(StrictModel):
             raise ValueError("Joint references an unknown component")
         if len({j.id for j in self.joints}) != len(self.joints):
             raise ValueError("Joint IDs must be unique")
+        if len({j.component_id for j in self.joints}) != len(self.joints):
+            raise ValueError(
+                "Use one joint per link; represent additional axes with separate links"
+            )
+        if any(
+            j.parent_component_id
+            and (
+                j.parent_component_id not in ids
+                or j.parent_component_id == j.component_id
+            )
+            for j in self.joints
+        ):
+            raise ValueError("Invalid joint parent")
+        for joint in self.joints:
+            child = next(c for c in self.components if c.id == joint.component_id)
+            if (
+                joint.parent_component_id
+                and joint.parent_component_id not in child.depends_on
+            ):
+                raise ValueError(
+                    "Joint parent must agree with the component mounting graph"
+                )
         if self.degrees_of_freedom != sum(j.type != "fixed" for j in self.joints):
             raise ValueError("Degrees of freedom must match movable joints")
         import math
@@ -133,6 +177,8 @@ class ProjectRequest(StrictModel):
 
 class GenerationRequest(StrictModel):
     prompt: str = Field(min_length=8, max_length=6000)
+    request_id: str | None = Field(default=None, pattern=r"^[a-zA-Z0-9_-]{8,80}$")
+    retry_failed: bool = False
 
 
 class AIRequest(StrictModel):

@@ -18,6 +18,7 @@ export const initialTask: Task = {
   network_available: false,
 };
 type State = {
+  renderedRobotId: string | null;
   visualPreview: boolean;
   atlasFamily: string;
   atlasConcept: string;
@@ -49,6 +50,7 @@ type State = {
   project: () => Project | null;
 };
 export const useLab = create<State>((set, get) => ({
+  renderedRobotId: null,
   visualPreview: false,
   atlasFamily: "jetson",
   atlasConcept: "parallel",
@@ -87,6 +89,7 @@ export const useLab = create<State>((set, get) => ({
   set,
   setRobot: (robot, assembly) =>
     set({
+      renderedRobotId: null,
       robot,
       assembly,
       driveSpeed: 4,

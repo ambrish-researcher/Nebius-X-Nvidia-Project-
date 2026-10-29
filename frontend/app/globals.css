@@ -3609,3 +3609,52 @@ small {
   opacity: 1;
   cursor: default;
 }
+/* Keep native text editing above the noninteractive cinematic canvas. */
+.prompt-console {
+  isolation: isolate;
+  pointer-events: auto;
+}
+.prompt-input-row textarea {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  caret-color: #fff;
+}
+.cinematic-world:not(.phase-transform) .scene-container {
+  pointer-events: none;
+}
+.generation-recovery {
+  position: fixed;
+  z-index: 70;
+  left: 5%;
+  right: 5%;
+  bottom: 18px;
+  max-height: 40vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #aaa0bb;
+  background: #17131ff5;
+}
+.generation-recovery p {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.generation-recovery button {
+  padding: 12px;
+  text-decoration: underline;
+}
+.design-evidence {
+  padding: 22px 0;
+  margin: 20px 0;
+  border-block: 1px solid #a08ab438;
+}
+.design-evidence h3 {
+  font-size: 20px;
+  line-height: 1.4;
+}
+.design-evidence li,
+.design-evidence p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin-top: 12px;
+}

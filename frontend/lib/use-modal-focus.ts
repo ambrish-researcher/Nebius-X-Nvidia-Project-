@@ -13,7 +13,9 @@ export function useModalFocus(open: boolean, onClose: () => void) {
           "button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href]",
         ) || [],
       );
-    focusables()[0]?.focus();
+    (
+      dialog?.querySelector<HTMLElement>("[data-autofocus]") || focusables()[0]
+    )?.focus();
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();

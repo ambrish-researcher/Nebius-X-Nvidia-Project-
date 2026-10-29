@@ -498,3 +498,99 @@ def test_invalid_provider_envelope_fails_closed(configured, monkeypatch, body):
     assert exc.value.status_code == 502
     assert ai.usage()["reserved_usd"] > 0
     assert ai.verification_status()["verified"] is False
+
+
+def test_explicit_retry_after_known_failed_charge_preserves_both_attempts(
+    configured, monkeypatch
+):
+    calls = mock_transport(monkeypatch, body=success_body("invalid json"))
+    with pytest.raises(HTTPException):
+        asyncio.run(ai.infer("tutor", {"prompt": "retry known"}))
+    spent = ai.usage()["charged_usd"]
+    assert spent > 0 and ai.usage()["reserved_usd"] == 0
+    calls = mock_transport(monkeypatch)
+    result = asyncio.run(
+        ai.infer(
+            "tutor", {"prompt": "retry known"}, request_id="retry-1", retry_failed=True
+        )
+    )
+    assert result["data"]["answer"] == "test fixture"
+    assert (
+        len(calls) == 1
+        and ai.usage()["requests"] == 2
+        and ai.usage()["charged_usd"] > spent
+    )
+
+
+def test_explicit_retry_cannot_clear_uncertain_charge(configured, monkeypatch):
+    calls = mock_transport(monkeypatch, status=503)
+    with pytest.raises(HTTPException):
+        asyncio.run(ai.infer("tutor", {"prompt": "unknown retry"}))
+    reserved = ai.usage()["reserved_usd"]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(
+            ai.infer(
+                "tutor",
+                {"prompt": "unknown retry"},
+                request_id="retry-1",
+                retry_failed=True,
+            )
+        )
+    assert (
+        e.value.status_code == 409
+        and len(calls) == 1
+        and ai.usage()["reserved_usd"] == reserved
+    )
+
+
+def test_uncertain_retry_child_blocks_further_forks(configured, monkeypatch):
+    mock_transport(monkeypatch, body=success_body("invalid json"))
+    with pytest.raises(HTTPException):
+        asyncio.run(ai.infer("tutor", {"prompt": "retry family"}))
+    calls = mock_transport(monkeypatch, status=503)
+    with pytest.raises(HTTPException):
+        asyncio.run(
+            ai.infer(
+                "tutor",
+                {"prompt": "retry family"},
+                request_id="child-1",
+                retry_failed=True,
+            )
+        )
+    reserved = ai.usage()["reserved_usd"]
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(
+            ai.infer(
+                "tutor",
+                {"prompt": "retry family"},
+                request_id="child-2",
+                retry_failed=True,
+            )
+        )
+    assert (
+        e.value.status_code == 409
+        and len(calls) == 1
+        and ai.usage()["reserved_usd"] == reserved
+    )
+
+
+def test_successful_retry_is_recovered_on_later_normal_submission(
+    configured, monkeypatch
+):
+    mock_transport(monkeypatch, body=success_body("invalid json"))
+    with pytest.raises(HTTPException):
+        asyncio.run(ai.infer("tutor", {"prompt": "retry head"}, validator=lambda x: x))
+    calls = mock_transport(monkeypatch)
+    asyncio.run(
+        ai.infer(
+            "tutor",
+            {"prompt": "retry head"},
+            validator=lambda x: x,
+            request_id="known-child",
+            retry_failed=True,
+        )
+    )
+    result = asyncio.run(
+        ai.infer("tutor", {"prompt": "retry head"}, validator=lambda x: x)
+    )
+    assert result["cached"] and len(calls) == 1 and ai.usage()["requests"] == 2

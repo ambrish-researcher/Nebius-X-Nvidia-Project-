@@ -1,5 +1,11 @@
 export type Vec3 = [number, number, number];
 export interface ComponentSpec {
+  appearance?: {
+    color: string;
+    material: string;
+    metalness?: number;
+    roughness?: number;
+  } | null;
   id: string;
   name: string;
   kind:
@@ -16,6 +22,10 @@ export interface ComponentSpec {
   limitations: string[];
 }
 export interface RobotSpec {
+  capabilities?: string[];
+  engineering_reasoning?: string;
+  mobility?: string;
+  control_architecture?: string;
   id: string;
   name: string;
   purpose: string;
@@ -23,7 +33,17 @@ export interface RobotSpec {
   provenance: "reference" | "nebius";
   dimensions_m: Vec3;
   components: ComponentSpec[];
-  joints: { id: string; component_id: string; type: string; axis: Vec3 }[];
+  joints: {
+    id: string;
+    component_id: string;
+    type: string;
+    axis: Vec3;
+    parent_component_id?: string | null;
+    limits_rad?: [number, number];
+    continuous?: boolean;
+    force_limit_nm?: number;
+    velocity_limit_rad_s?: number;
+  }[];
   degrees_of_freedom: number;
   power_budget_w: number;
   control_requirements: string[];

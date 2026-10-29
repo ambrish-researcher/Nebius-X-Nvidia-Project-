@@ -1,0 +1,677 @@
+{
+  "prompt": "Design a custom amphibious inspection robot combining two powered tracks represented as box assemblies, a three-axis sampling arm, water-quality probe, thermal camera and sealed electronics. Use Y-up coordinates and 12 or fewer parts. Do not substitute a four-wheel rover. Explain waterproofing and control limitations.",
+  "http_status": 200,
+  "response": {
+    "robot": {
+      "id": "f9e3f552-8d1e-4aa8-88a4-46f3dcc766f9",
+      "name": "Amphibious Inspection Robot",
+      "purpose": "Perform underwater and terrestrial inspections using dual-track mobility, articulated sampling arm, and environmental sensors while maintaining sealed electronics integrity.",
+      "classification": "mobile_manipulator",
+      "provenance": "nebius",
+      "dimensions_m": [
+        0.8,
+        0.3,
+        0.4
+      ],
+      "components": [
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Marine-grade aluminum alloy",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "chassis",
+          "name": "Main Hull",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.6,
+            0.2,
+            0.3
+          ],
+          "position": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 8.0,
+          "depends_on": [],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Rubber-coated steel",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "left_track",
+          "name": "Left Track Assembly",
+          "kind": "actuator",
+          "shape": "box",
+          "size": [
+            0.5,
+            0.05,
+            0.1
+          ],
+          "position": [
+            -0.25,
+            0.05,
+            -0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [
+            "chassis"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Rubber-coated steel",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "right_track",
+          "name": "Right Track Assembly",
+          "kind": "actuator",
+          "shape": "box",
+          "size": [
+            0.5,
+            0.05,
+            0.1
+          ],
+          "position": [
+            -0.25,
+            0.05,
+            0.15
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 2.0,
+          "depends_on": [
+            "chassis"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Stainless steel",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "base_rotate",
+          "name": "Arm Base Rotation",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.08,
+            0.06,
+            0.08
+          ],
+          "position": [
+            0.15,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.5,
+          "depends_on": [
+            "chassis"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Carbon fiber composite",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "arm_link1",
+          "name": "Upper Arm Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.25,
+            0.04,
+            0.04
+          ],
+          "position": [
+            0.275,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.3,
+          "depends_on": [
+            "base_rotate"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Stainless steel",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "elbow_joint",
+          "name": "Elbow Joint Actuator",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.06,
+            0.05,
+            0.06
+          ],
+          "position": [
+            0.4,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.25,
+          "depends_on": [
+            "arm_link1"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Carbon fiber composite",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "arm_link2",
+          "name": "Forearm Link",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.2,
+            0.03,
+            0.03
+          ],
+          "position": [
+            0.5,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.2,
+          "depends_on": [
+            "elbow_joint"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Stainless steel",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "wrist_joint",
+          "name": "Wrist Joint Actuator",
+          "kind": "actuator",
+          "shape": "cylinder",
+          "size": [
+            0.05,
+            0.04,
+            0.05
+          ],
+          "position": [
+            0.6,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.15,
+          "depends_on": [
+            "arm_link2"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Delrin",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "probe_mount",
+          "name": "Sensor Mount",
+          "kind": "structure",
+          "shape": "box",
+          "size": [
+            0.05,
+            0.05,
+            0.05
+          ],
+          "position": [
+            0.65,
+            0.2,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.1,
+          "depends_on": [
+            "wrist_joint"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Titanium",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "water_probe",
+          "name": "Water Quality Probe",
+          "kind": "sensor",
+          "shape": "cylinder",
+          "size": [
+            0.03,
+            0.08,
+            0.03
+          ],
+          "position": [
+            0.65,
+            0.2,
+            0.04
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.05,
+          "depends_on": [
+            "probe_mount"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "ABS plastic",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "thermal_cam",
+          "name": "Thermal Camera",
+          "kind": "sensor",
+          "shape": "box",
+          "size": [
+            0.04,
+            0.03,
+            0.02
+          ],
+          "position": [
+            0.65,
+            0.2,
+            -0.04
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 0.04,
+          "depends_on": [
+            "probe_mount"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        },
+        {
+          "appearance": {
+            "color": "#a0a7a0",
+            "material": "Anodized aluminum",
+            "metalness": 0.6,
+            "roughness": 0.35
+          },
+          "id": "electronics",
+          "name": "Sealed Electronics Canister",
+          "kind": "power",
+          "shape": "cylinder",
+          "size": [
+            0.12,
+            0.08,
+            0.12
+          ],
+          "position": [
+            0.0,
+            0.1,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mass_kg": 1.5,
+          "depends_on": [
+            "chassis"
+          ],
+          "function": "No component-specific role supplied by the model.",
+          "selection_reason": "Part of the generated conceptual design; physical ratings are not verified.",
+          "alternatives": [],
+          "limitations": []
+        }
+      ],
+      "joints": [
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_left_drive",
+          "component_id": "left_track",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_right_drive",
+          "component_id": "right_track",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -6.28,
+            6.28
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_base_yaw",
+          "component_id": "base_rotate",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -3.14,
+            3.14
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_shoulder_pitch",
+          "component_id": "arm_link1",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_elbow_pitch",
+          "component_id": "elbow_joint",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_wrist_pitch",
+          "component_id": "wrist_joint",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        },
+        {
+          "parent_component_id": null,
+          "continuous": true,
+          "force_limit_nm": 2.0,
+          "velocity_limit_rad_s": 8.0,
+          "id": "j_wrist_yaw",
+          "component_id": "probe_mount",
+          "type": "hinge",
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "limits_rad": [
+            -1.57,
+            1.57
+          ]
+        }
+      ],
+      "degrees_of_freedom": 7,
+      "power_budget_w": 30.0,
+      "control_requirements": [
+        "Open-loop velocity control for tracks with current feedback for stall detection; joint position control via PID with encoder feedback; no force/torque sensing at arm end-effector; manual teleoperation or pre-programmed sequences only."
+      ],
+      "operating_environment": "User-described environment; not physically validated",
+      "intended_tasks": [
+        "Dual-track amphibious locomotion",
+        "Three-axis articulated sampling",
+        "In-situ water quality measurement",
+        "Thermal anomaly detection",
+        "Sealed electronics operation"
+      ],
+      "constraints": [],
+      "simulation_capabilities": [],
+      "unsupported_assumptions": [
+        "No active buoyancy control; ballast fixed for neutral stability in calm water",
+        "Track seals degrade with abrasive sediments requiring periodic maintenance",
+        "Arm joints lack torque sensing, limiting force-controlled sampling",
+        "Thermal camera field of view restricted by wrist orientation",
+        "Electronics canister thermal dissipation limited in enclosed configuration",
+        "No obstacle avoidance or autonomous path planning; operation requires direct supervision",
+        "Maximum depth limited by seal rating (assumed 5m without validation)",
+        "Sensor calibration drift possible in prolonged submersion"
+      ],
+      "capabilities": [
+        "Dual-track amphibious locomotion",
+        "Three-axis articulated sampling",
+        "In-situ water quality measurement",
+        "Thermal anomaly detection",
+        "Sealed electronics operation"
+      ],
+      "mobility": "Independent hydraulic or electric track drives enable forward/reverse and skid-steer turning on land and submerged surfaces; tracks provide traction in mud, silt, and loose substrates.",
+      "control_architecture": "Open-loop velocity control for tracks with current feedback for stall detection; joint position control via PID with encoder feedback; no force/torque sensing at arm end-effector; manual teleoperation or pre-programmed sequences only.",
+      "engineering_reasoning": "Dual-box track assemblies simplify sealing compared to individual wheels while providing continuous ground contact. The three-axis arm (yaw, pitch, pitch) enables probe placement in confined spaces. Sealed electronics canister protects against ingress; sensors mounted externally with O-ring seals and conformal coatings. Design avoids complex articulating tracks to maintain part count under 12 and ensure waterproofing feasibility."
+    },
+    "assembly": [
+      {
+        "index": 0,
+        "name": "Main Hull",
+        "component_ids": [
+          "chassis"
+        ]
+      },
+      {
+        "index": 1,
+        "name": "Left Track Assembly \u2192 Right Track Assembly \u2192 Arm Base Rotation \u2192 Sealed Electronics Canister",
+        "component_ids": [
+          "left_track",
+          "right_track",
+          "base_rotate",
+          "electronics"
+        ]
+      },
+      {
+        "index": 2,
+        "name": "Upper Arm Link",
+        "component_ids": [
+          "arm_link1"
+        ]
+      },
+      {
+        "index": 3,
+        "name": "Elbow Joint Actuator",
+        "component_ids": [
+          "elbow_joint"
+        ]
+      },
+      {
+        "index": 4,
+        "name": "Forearm Link",
+        "component_ids": [
+          "arm_link2"
+        ]
+      },
+      {
+        "index": 5,
+        "name": "Wrist Joint Actuator",
+        "component_ids": [
+          "wrist_joint"
+        ]
+      },
+      {
+        "index": 6,
+        "name": "Sensor Mount",
+        "component_ids": [
+          "probe_mount"
+        ]
+      },
+      {
+        "index": 7,
+        "name": "Water Quality Probe \u2192 Thermal Camera",
+        "component_ids": [
+          "water_probe",
+          "thermal_cam"
+        ]
+      }
+    ],
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "cached": false,
+    "request_id": "169bc053-a2ef-485e-a90e-ad71ad157dab",
+    "assessment": {
+      "concept_valid": true,
+      "physics_valid": false,
+      "adapter": null,
+      "model_dofs": null,
+      "simulation_executed": false,
+      "limitations": [
+        "Only a four-wheel box-chassis rover is supported by the flat-floor adapter."
+      ]
+    }
+  },
+  "fixture_notice": "Recorded successful Nebius/Nemotron response. Offline browser replay is not a fresh provider request."
+}

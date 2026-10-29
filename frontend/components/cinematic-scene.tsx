@@ -207,7 +207,8 @@ export function CinematicWorld() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (!lab.entered && !state.paused && state.duration) {
-      clock.current += dt * state.rate;
+      // A loading/background-tab stall must not skip a whole chapter at once.
+      clock.current += Math.min(dt, 0.5) * state.rate;
       if (clock.current > 0.06) {
         state.set({
           time: Math.min(state.duration, state.time + clock.current),

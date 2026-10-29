@@ -22,6 +22,7 @@ def build_model(robot):
         c.shape != "cylinder"
         or c.id not in joints
         or abs(c.rotation[0] - math.pi / 2) > 0.03
+        or abs(c.rotation[1]) + abs(c.rotation[2]) > 0.03
         for c in wheels
     ):
         raise ValueError(
@@ -38,6 +39,19 @@ def build_model(robot):
         c.position[2] > 0 for c in wheels
     ):
         raise ValueError("Wheels must be mounted on both sides of the chassis.")
+    if any(
+        j.parent_component_id and j.parent_component_id != chassis.id
+        for j in joints.values()
+    ):
+        raise ValueError("Wheel hinges must attach to the chassis for this controller.")
+    if any(
+        set(c.depends_on) & {w.id for w in wheels}
+        for c in robot.components
+        if c not in wheels
+    ):
+        raise ValueError(
+            "Components mounted on moving wheels need an articulated adapter."
+        )
     root = Element("mujoco", model="specification-derived-rover")
     SubElement(root, "compiler", angle="radian")
     SubElement(
@@ -60,7 +74,14 @@ def build_model(robot):
         if c in wheels:
             child = SubElement(body, "body", name=c.id, pos=vec((x, z, y)))
             SubElement(
-                child, "joint", name=c.id, type="hinge", axis="0 1 0", damping=".02"
+                child,
+                "joint",
+                name=c.id,
+                type="hinge",
+                axis="0 1 0",
+                damping=".02",
+                limited="false" if joints[c.id].continuous else "true",
+                range=vec(joints[c.id].limits_rad),
             )
             SubElement(
                 child,
@@ -76,8 +97,15 @@ def build_model(robot):
                 name=c.id,
                 joint=c.id,
                 kv="1.5",
-                ctrlrange="-8 8",
-                forcerange="-2 2",
+                ctrlrange=vec(
+                    (
+                        -joints[c.id].velocity_limit_rad_s,
+                        joints[c.id].velocity_limit_rad_s,
+                    )
+                ),
+                forcerange=vec(
+                    (-joints[c.id].force_limit_nm, joints[c.id].force_limit_nm)
+                ),
             )
         else:
             # Non-wheel parts remain fixed, preserving masses and local positions.
@@ -92,6 +120,7 @@ def build_model(robot):
                 size=vec(size),
                 pos=vec((x, z, y)),
                 mass=str(c.mass_kg),
+                quat=vec(rotation_quat(c.rotation)),
             )
             if c.shape == "sphere" and max(c.size) - min(c.size) > 0.01:
                 raise ValueError(
@@ -110,8 +139,24 @@ def simulate(req: SimulationRequest):
     contacts = 0
     max_tilt = 0.0
     steps = int(req.duration_s / model.opt.timestep)
+    # Preserve specification order even when component and joint lists differ.
+    qpos_addresses = [
+        int(
+            model.jnt_qposadr[
+                mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, j.component_id)
+            ]
+        )
+        for j in req.robot.joints
+    ]
+    actuator_addresses = [
+        mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, j.component_id)
+        for j in req.robot.joints
+    ]
     for i in range(steps):
-        data.ctrl[:] = min(req.wheel_speed_rad_s, i * model.opt.timestep * 4.0)
+        data.ctrl[:] = np.minimum(
+            model.actuator_ctrlrange[:, 1],
+            min(req.wheel_speed_rad_s, i * model.opt.timestep * 4.0),
+        )
         mujoco.mj_step(model, data)
         if not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
             raise ValueError("Unstable physics configuration; simulation terminated.")
@@ -134,9 +179,9 @@ def simulate(req: SimulationRequest):
                         float(data.qpos[5]),
                         float(data.qpos[6]),
                     ],
-                    joints=data.qpos[7:].tolist(),
+                    joints=data.qpos[qpos_addresses].tolist(),
                     velocity=data.qvel[:3].tolist(),
-                    controller_output=data.actuator_force.tolist(),
+                    controller_output=data.actuator_force[actuator_addresses].tolist(),
                     contacts=int(data.ncon),
                 )
             )
@@ -173,3 +218,48 @@ def simulate(req: SimulationRequest):
             "Selected hardware does not alter physics or imply measured compute performance.",
         ],
     )
+
+
+def rotation_quat(rotation):
+    x, y, z = rotation
+    cx, sx, cy, sy, cz, sz = (
+        math.cos(x),
+        math.sin(x),
+        math.cos(y),
+        math.sin(y),
+        math.cos(z),
+        math.sin(z),
+    )
+    rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+    swap = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+    quat = np.zeros(4)
+    mujoco.mju_mat2Quat(quat, (swap @ rx @ ry @ rz @ swap).flatten())
+    return quat
+
+
+def assess(robot):
+    """Compilation is separate from executing even one solver step."""
+    try:
+        model = build_model(robot)
+        return dict(
+            concept_valid=True,
+            physics_valid=True,
+            adapter="flat-floor-drive",
+            model_dofs=int(model.nv),
+            simulation_executed=False,
+            limitations=[
+                "Compiled MuJoCo model only; no experiment has run.",
+                "Forward wheel control only; no obstacle avoidance, perception, or mission solver.",
+            ],
+        )
+    except ValueError as exc:
+        return dict(
+            concept_valid=True,
+            physics_valid=False,
+            adapter=None,
+            model_dofs=None,
+            simulation_executed=False,
+            limitations=[str(exc)],
+        )
