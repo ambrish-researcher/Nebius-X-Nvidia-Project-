@@ -147,3 +147,12 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local development and validation
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.runtime/
+playwright-report/
+test-results/
