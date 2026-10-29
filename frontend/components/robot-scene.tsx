@@ -20,6 +20,9 @@ import {
   type ReactNode,
 } from "react";
 import * as THREE from "three";
+import { CinematicWorld, ComputeSculpture } from "./cinematic-scene";
+import { useCinema, componentPose } from "../lib/cinema";
+import { useMotionPreference } from "../lib/use-motion-preference";
 import { useLab, assemblyOrder } from "../lib/store";
 import type { ComponentSpec, Frame } from "../lib/types";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
@@ -73,9 +76,30 @@ function Part({
     const progress = reduced
       ? 1
       : THREE.MathUtils.smoothstep(elapsed.current - order * 0.55, 0, 1.2);
+    const cinema = useCinema.getState();
+    if (!useLab.getState().entered && cinema.phase === "transform") {
+      // The cinematic timeline owns construction. Enter the lab fully assembled,
+      // including on slow renderers where frame-counted elapsed time lags behind.
+      elapsed.current = order * 0.55 + 1.2;
+      const index =
+        useLab
+          .getState()
+          .robot?.components.findIndex((c) => c.id === part.id) || 0;
+      const pose = componentPose(part.position, order, cinema.time, index);
+      ref.current.position.set(...pose.position);
+      ref.current.rotation.set(
+        part.rotation[0] + pose.spin,
+        part.rotation[1] + pose.spin * 0.5,
+        part.rotation[2],
+      );
+      ref.current.scale.setScalar(Math.max(0.001, pose.scale));
+      return;
+    }
+    ref.current.rotation.set(...part.rotation);
     const spread = exploded ? 1 : (1 - progress) * 2.3;
     target.set(...part.position).addScaledVector(offset, spread);
-    ref.current.position.lerp(target, Math.min(1, dt * 7));
+    if (reduced) ref.current.position.copy(target);
+    else ref.current.position.lerp(target, Math.min(1, dt * 7));
     ref.current.scale.setScalar(Math.max(0.001, progress));
     if (isWheel && frame) {
       const robot = useLab.getState().robot;
@@ -119,7 +143,7 @@ function Part({
       rotation={[...part.rotation]}
       onClick={(e) => {
         e.stopPropagation();
-        set({ selected: part.id, section: "inspect", entered: true });
+        useLab.getState().inspect(part.id);
       }}
       onPointerOver={(e) => {
         e.stopPropagation();
@@ -225,19 +249,22 @@ function Part({
             />
           </mesh>
         ))}
-      {selectedPart && annotations && !playing && (
-        <Html
-          center
-          position={[0, h + 0.15, 0]}
-          distanceFactor={3}
-          style={{ pointerEvents: "none" }}
-        >
-          <div className="part-label">
-            {part.name}
-            <span>{part.kind.toUpperCase()}</span>
-          </div>
-        </Html>
-      )}
+      {selectedPart &&
+        annotations &&
+        !playing &&
+        useLab.getState().section === "inspect" && (
+          <Html
+            center
+            position={[0, h + 0.15, 0]}
+            distanceFactor={3}
+            style={{ pointerEvents: "none" }}
+          >
+            <div className="part-label">
+              {part.name}
+              <span>{part.kind.toUpperCase()}</span>
+            </div>
+          </Html>
+        )}
     </group>
   );
 }
@@ -274,6 +301,11 @@ function Robot() {
         );
         const [w, x, y, z] = frame.quaternion;
         group.current.quaternion.set(-x, -z, -y, w).normalize();
+      } else if (
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        group.current.position.set(0, 0, 0);
+        group.current.quaternion.identity();
       } else {
         group.current.position.lerp(new THREE.Vector3(0, 0, 0), 0.1);
         group.current.quaternion.slerp(new THREE.Quaternion(), 0.1);
@@ -312,12 +344,25 @@ function Robot() {
 function CameraRig() {
   const controls = useRef<OrbitControlsType>(null);
   const { camera, selected, robot, section, entered } = useLab();
-  const { camera: threeCamera } = useThree();
+  const { camera: threeCamera, size } = useThree();
   const destination = useRef(new THREE.Vector3(2.3, 1.7, 2.5));
   const target = useRef(new THREE.Vector3(0, 0.4, 0));
   const animating = useRef(true);
   const previousPosition = useRef(new THREE.Vector3());
   useEffect(() => {
+    const projection = threeCamera as THREE.PerspectiveCamera;
+    if (projection.isPerspectiveCamera) {
+      if (entered && size.width > 760)
+        projection.setViewOffset(
+          size.width,
+          size.height,
+          Math.min(240, size.width * 0.18),
+          0,
+          size.width,
+          size.height,
+        );
+      else projection.clearViewOffset();
+    }
     const part = robot?.components.find((c) => c.id === selected);
     target.current.set(
       ...((part && section === "inspect" ? part.position : [0, 0.4, 0]) as [
@@ -340,9 +385,25 @@ function CameraRig() {
       destination.current
         .copy(target.current)
         .add(new THREE.Vector3(1, 0.7, 1.2));
+    if (section === "compute") {
+      target.current.set(-0.5, 0.65, -0.25);
+      destination.current
+        .copy(target.current)
+        .add(new THREE.Vector3(3.1, 1.8, 4.1));
+    }
     animating.current = true;
-  }, [camera, selected, robot, section, entered]);
+  }, [
+    camera,
+    selected,
+    robot,
+    section,
+    entered,
+    size.width,
+    size.height,
+    threeCamera,
+  ]);
   useFrame((_, dt) => {
+    if (!useLab.getState().entered) return;
     const s = useLab.getState();
     const f =
       s.section === "simulate" ? s.runs.at(-1)?.frames[s.playhead] : undefined;
@@ -356,8 +417,12 @@ function CameraRig() {
     }
     previousPosition.current.copy(pos);
     if (controls.current && animating.current) {
-      threeCamera.position.lerp(destination.current, Math.min(1, dt * 3));
-      controls.current.target.lerp(target.current, Math.min(1, dt * 3));
+      const fraction = window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches
+        ? 1
+        : Math.min(1, dt * 3);
+      threeCamera.position.lerp(destination.current, fraction);
+      controls.current.target.lerp(target.current, fraction);
       controls.current.update();
       if (threeCamera.position.distanceTo(destination.current) < 0.01)
         animating.current = false;
@@ -366,6 +431,7 @@ function CameraRig() {
   return (
     <OrbitControls
       ref={controls}
+      enabled={entered}
       makeDefault
       minDistance={0.5}
       maxDistance={18}
@@ -375,19 +441,32 @@ function CameraRig() {
       onStart={() => {
         animating.current = false;
       }}
-      autoRotate={
-        !entered &&
-        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      }
+      autoRotate={false}
       autoRotateSpeed={0.28}
     />
   );
 }
-function Performance({ onSlow }: { onSlow: (ratio: number) => void }) {
+function Performance({
+  onSlow,
+  staticFrame,
+}: {
+  onSlow: (ratio: number) => void;
+  staticFrame: boolean;
+}) {
   const frames = useRef(0),
     elapsed = useRef(0);
   const { gl } = useThree();
+  useEffect(() => {
+    frames.current = 0;
+    elapsed.current = 0;
+    const node = document.getElementById("render-fps");
+    if (node)
+      node.textContent = staticFrame
+        ? "STATIC VIEW · REDRAW ON INTERACTION"
+        : "RENDER RATE · MEASURING";
+  }, [staticFrame]);
   useFrame((_, dt) => {
+    if (staticFrame) return;
     frames.current++;
     elapsed.current += dt;
     if (elapsed.current > 2) {
@@ -426,6 +505,13 @@ class SceneBoundary extends ReactComponent<
   }
 }
 export default function RobotScene() {
+  const entered = useLab((s) => s.entered);
+  const playing = useLab((s) => s.playing);
+  const reduced = useMotionPreference();
+  const phase = useCinema((s) => s.phase);
+  const paused = useCinema((s) => s.paused);
+  const duration = useCinema((s) => s.duration);
+  const staticFrame = reduced && !playing && (entered || paused || !duration);
   const [supported, setSupported] = useState<boolean | null>(null);
   const [low, setLow] = useState(false);
   const [pixelRatio, setPixelRatio] = useState(0.75);
@@ -453,6 +539,7 @@ export default function RobotScene() {
     <SceneBoundary>
       {supported ? (
         <Canvas
+          frameloop={staticFrame ? "demand" : "always"}
           shadows={!low}
           dpr={low ? pixelRatio : [1, 1.5]}
           camera={{ position: [2.8, 2, 3], fov: 35, near: 0.01, far: 70 }}
@@ -462,8 +549,13 @@ export default function RobotScene() {
               useLab.getState().set({ selected: null });
           }}
         >
-          <color attach="background" args={["#141916"]} />
-          <fog attach="fog" args={["#141916", 9, 23]} />
+          <color
+            attach="background"
+            args={[
+              entered ? "#111217" : phase === "reveal" ? "#000000" : "#060609",
+            ]}
+          />
+          <fog attach="fog" args={[entered ? "#111217" : "#060609", 9, 23]} />
           <ambientLight intensity={0.35} />
           <hemisphereLight args={["#f2ffe8", "#263027", 1]} />
           <directionalLight
@@ -501,13 +593,17 @@ export default function RobotScene() {
           </Suspense>
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
-            position={[0, -0.009, 0]}
+            position={[0, entered ? -0.009 : -0.58, 0]}
             receiveShadow
           >
             <planeGeometry args={[100, 100]} />
-            <meshStandardMaterial color="#141916" roughness={0.95} />
+            <meshStandardMaterial
+              color={entered ? "#141916" : "#07070d"}
+              roughness={0.95}
+            />
           </mesh>
           <Grid
+            visible={entered}
             args={[28, 28]}
             position={[0, -0.006, 0]}
             cellSize={0.25}
@@ -518,9 +614,14 @@ export default function RobotScene() {
             fadeStrength={2}
             infiniteGrid
           />
-          <Robot />
+          <group visible={entered || phase === "transform"}>
+            <Robot />
+          </group>
+          <CinematicWorld />
+          <ComputeSculpture />
           <CameraRig />
           <Performance
+            staticFrame={staticFrame}
             onSlow={(ratio) => {
               setLow(true);
               setPixelRatio(ratio);

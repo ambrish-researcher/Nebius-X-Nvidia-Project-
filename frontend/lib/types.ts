@@ -84,6 +84,8 @@ export interface Frame {
   contacts: number;
 }
 export interface SimulationRun {
+  prediction?: string;
+  parameters?: { wheel_speed_rad_s: number; design_mass_kg: number };
   id: string;
   robot_id: string;
   engine: string;
@@ -115,6 +117,15 @@ export interface Card {
   back: string;
 }
 export interface Project {
+  inspected_components?: string[];
+  controller_settings?: { wheel_speed_rad_s: number };
+  design_changes?: {
+    id: string;
+    component_id: string;
+    before_kg: number;
+    after_kg: number;
+    at: string;
+  }[];
   id: string;
   robot: RobotSpec;
   task: Task;
@@ -134,9 +145,11 @@ export type Section =
   | "compute"
   | "simulate"
   | "learn"
-  | "history";
+  | "history"
+  | "improve";
 
 export interface BackendHealth {
+  visual_preview?: boolean;
   nebius_configured: boolean;
   model_configured: boolean;
   pricing_configured: boolean;

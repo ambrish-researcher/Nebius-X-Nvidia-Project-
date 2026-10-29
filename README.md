@@ -1,8 +1,10 @@
 # Nebius-X-Nvidia-Project-
 
-**Robotics Intelligence Platform** — an immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.
+**ARISE — THE FUTURE OF KNOWLEDGE AND UNDERSTANDING IN A SINGLE PROMPT**
 
-The repository name is unchanged. The application uses the directive's internal identifier, `robotics-intelligence-platform`.
+An immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.
+
+The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [cinematic milestone and limitations](docs/arise-milestone.md).
 
 ## What works locally
 
@@ -31,6 +33,8 @@ Requires Node.js 20.9+ (validated with 24), Python 3.12, a modern browser, and n
 # Optional: copy .env.example to .env, then enter real values securely.
 ./scripts/dev.sh
 ```
+
+For cost-safe cinematic development, use `ARISE_VISUAL_DEV=1 ./scripts/dev.sh`. The backend blocks paid inference and the browser clearly labels deterministic reference/learning fixtures. Stop the server and restart without this flag to restore the existing live-provider workflow; visual preview is never represented as NVIDIA output.
 
 The frontend listens on port 3000 and the backend on 8000. The Next.js `/api/*` rewrite targets the backend, keeping keys off the client. For separate processes:
 

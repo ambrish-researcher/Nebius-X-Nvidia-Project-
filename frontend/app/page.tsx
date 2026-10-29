@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -30,6 +30,9 @@ import {
   AlertCircle,
   Download,
 } from "lucide-react";
+import { CinematicOverlay } from "../components/cinematic-ui";
+import { useCinema } from "../lib/cinema";
+import { useMotionPreference } from "../lib/use-motion-preference";
 import { useLab } from "../lib/store";
 import { api, formatError } from "../lib/api";
 import { useModalFocus } from "../lib/use-modal-focus";
@@ -59,6 +62,7 @@ const sections: {
   { id: "simulate", label: "Simulate", icon: FlaskConical, number: "05" },
   { id: "learn", label: "Learn", icon: BookOpen, number: "06" },
   { id: "history", label: "Notebook", icon: History, number: "07" },
+  { id: "improve", label: "Improve", icon: RotateCcw, number: "08" },
 ];
 export default function Home() {
   const {
@@ -81,6 +85,9 @@ export default function Home() {
     attempts,
     cards,
     project,
+    driveSpeed,
+    changes,
+    inspected,
   } = useLab();
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
@@ -90,7 +97,8 @@ export default function Home() {
   const [health, setHealth] = useState<BackendHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
+  const phase = useCinema((s) => s.phase);
   useModalFocus(connections || generationOpen, () => {
     setConnections(false);
     if (!busy) setGenerationOpen(false);
@@ -108,6 +116,7 @@ export default function Home() {
         if (!alive) return;
         setRobot(reference.robot, reference.assembly);
         setHealth(status);
+        set({ visualPreview: !!status?.visual_preview });
         try {
           const saved = JSON.parse(
             localStorage.getItem("robotics-current") || "null",
@@ -120,6 +129,9 @@ export default function Home() {
               runs: saved.simulation_runs || [],
               attempts: saved.quiz_attempts || [],
               cards: saved.flashcard_progress || [],
+              driveSpeed: saved.controller_settings?.wheel_speed_rad_s ?? 4,
+              changes: saved.design_changes || [],
+              inspected: saved.inspected_components || [],
             });
           }
         } catch {}
@@ -156,7 +168,18 @@ export default function Home() {
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [robot, task, hardwareId, runs, attempts, cards, project]);
+  }, [
+    robot,
+    task,
+    hardwareId,
+    runs,
+    attempts,
+    cards,
+    project,
+    driveSpeed,
+    changes,
+    inspected,
+  ]);
   useEffect(() => {
     panelRef.current?.scrollTo({
       top: 0,
@@ -189,15 +212,25 @@ export default function Home() {
     if (prompt.trim().length < 8) return;
     setBusy(true);
     try {
-      const r = await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
-        "generate",
-        { prompt: prompt.trim() },
-      );
+      const preview = useLab.getState().visualPreview;
+      const r = preview
+        ? await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
+            "reference/" +
+              (/arm|grip|manipulat/i.test(prompt) ? "arm" : "rover"),
+          )
+        : await api<{ robot: RobotSpec; assembly: AssemblyStep[] }>(
+            "generate",
+            { prompt: prompt.trim() },
+          );
       setRobot(r.robot, r.assembly);
-      set({ entered: true, section: "design", replay: replay + 1 });
+      set({ entered: false, section: "design", replay: replay + 1 });
+      useCinema.getState().start("transform", r.assembly.length);
+      if (reduce) useCinema.getState().set({ time: 5, paused: true });
       setGenerationOpen(false);
       setMessage(
-        "NVIDIA model response validated. This remains a conceptual design; inspect its stated limitations.",
+        preview
+          ? "Visual fixture: a curated reference, not an AI-generated response. No inference was sent."
+          : "NVIDIA model response validated. This remains a conceptual design; inspect its stated limitations.",
       );
     } catch (e) {
       error(formatError(e));
@@ -210,13 +243,16 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
-    <main className={`world ${entered ? "in-lab" : ""}`}>
+    <main
+      className={`world arise-world ${entered ? "in-lab" : "cinematic-world"} phase-${phase}`}
+    >
       <header className="topbar">
         <button
           className="brand"
-          aria-label="Robotics Intelligence Platform home"
+          aria-label="ARISE home"
           onClick={() => {
             set({ entered: false, playing: false });
+            useCinema.getState().start("intro");
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
@@ -226,9 +262,8 @@ export default function Home() {
             <span />
           </span>
           <span>
-            ROBOTICS
-            <br />
-            <b>INTELLIGENCE PLATFORM</b>
+            ARISE
+            <b>IDEAS BECOME MACHINES</b>
           </span>
         </button>
         <nav aria-label="Primary navigation">
@@ -262,7 +297,11 @@ export default function Home() {
             }
           />
           <span>
-            {health?.nebius_configured ? "AI CONFIGURED" : "LOCAL EXPLORATION"}
+            {health?.visual_preview
+              ? "VISUAL PREVIEW"
+              : health?.nebius_configured
+                ? "AI CONFIGURED"
+                : "LOCAL EXPLORATION"}
           </span>
           <Settings2 size={13} />
         </button>
@@ -293,14 +332,20 @@ export default function Home() {
           </div>
         )}
       </div>
+      <CinematicOverlay />
+      {health?.visual_preview && (
+        <div className="preview-ribbon">
+          VISUAL DEVELOPMENT / DETERMINISTIC FIXTURES / PAID INFERENCE BLOCKED
+        </div>
+      )}
       {!entered ? (
         <>
-          <section className="hero">
+          <section className="hero legacy-hero">
             <motion.div
               className="hero-copy"
               initial={reduce ? false : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9 }}
+              transition={{ duration: reduce ? 0 : 0.9 }}
             >
               <div className="eyebrow">
                 <span className="tiny-square" /> NVIDIA × NEBIUS{" "}
@@ -359,7 +404,11 @@ export default function Home() {
                 <button
                   type="submit"
                   className="generate-button"
-                  aria-label="Generate robot with NVIDIA"
+                  aria-label={
+                    health?.visual_preview
+                      ? "Preview fixture robot"
+                      : "Generate robot with NVIDIA"
+                  }
                   disabled={busy || prompt.trim().length < 8}
                 >
                   {busy ? (
@@ -374,7 +423,13 @@ export default function Home() {
                   <Command size={11} /> + ENTER TO ENGINEER
                 </span>
                 <span>
-                  NEBIUS TOKEN FACTORY <i /> NVIDIA NEMOTRON
+                  {health?.visual_preview ? (
+                    "REFERENCE FIXTURE / NO INFERENCE"
+                  ) : (
+                    <>
+                      NEBIUS TOKEN FACTORY <i /> NVIDIA NEMOTRON
+                    </>
+                  )}
                 </span>
               </div>
             </form>
@@ -439,7 +494,7 @@ export default function Home() {
             </div>
           </section>
           <footer className="footer">
-            <span>ROBOTICS INTELLIGENCE PLATFORM</span>
+            <span>ARISE / ROBOTICS INTELLIGENCE PLATFORM</span>
             <p>Built for curiosity. Grounded in engineering.</p>
             <button onClick={() => setConnections(true)}>
               INTEGRATION STATUS <ArrowUpRight size={12} />

@@ -2,19 +2,21 @@
 
 This tracks the delivered local slice, not a claim that all requested platform features are finished.
 
+The current ARISE cinematic extension is documented in the [milestone report](arise-milestone.md). Historical validation below refers to the preceding integration commit.
+
 | Directive priority | State | Evidence / remaining work |
 |---|---|---|
 | P0 real NVIDIA inference | Verified | Authenticated Nemotron 3 Super via Token Factory. Model-matched, application-validated responses produce persisted historical status. Provider account balance remains unverified. |
 | P0 natural-language robot generation | Small concept verified live | Real browser prompt generated three validated box components, displayed their name, and inspected the actual returned component explanation. Complex configurations remain unverified under the 2,048-token output cap. |
-| P0 cinematic landing / construction | Implemented | Original procedural rover/arm geometry; shared 3D stage, materials, assembly DAG, interactive controls. Software WebGL is slow; GPU performance unverified. |
+| P0 cinematic landing / construction | Implemented | Original guide and sphere throw, tunnel prompt, specification-derived transformation, ARISE reveal, shared 3D lab, transport and reduced motion. Rendered reference comparison blocked; GPU performance unverified. |
 | P0 component education | Implemented | Selection, focus, graph relationships, supplied design dimensions/mass, three explanation levels. Live tutoring depends on Nebius. |
 | P0 task interpretation | Adapter + manual workflow | Live task parser is configured but not separately exercised in this validation. Explicit manual workload assumptions work. |
-| P0 compute recommendations / comparison | Implemented local heuristic | Memory, power, vision, manipulation, environment, network. No measured inference or price claims. Limited catalog; manufacturer source retrieval needs current verification. |
+| P0 compute recommendations / comparison | Implemented local heuristic | Memory, power, vision, manipulation, environment, network. No measured inference or price claims. Recommendation SKU set remains limited. The broader educational family explorer includes five examples with selected official fields checked on 2026-10-29; exhaustive compatibility is incomplete. |
 | P0 real simulation | Implemented | Actual MuJoCo four-wheel flat-floor drive, state playback, joint/force/contact data, trajectory, results export. Not arbitrary mission execution. |
 | P0 public working demo | Not deployed | Production build and deployment configuration prepared. Need selected hosting account/target and live secrets. No paid infrastructure launched. |
 | P1 quiz / flashcards | Implemented adapters + UI | Structured output validation, answer tracking and local persistence; live generation for these workflows remains untested. |
 | P1 experiment history | Implemented | Local storage and JSON export. Supabase adapter needs project URL, anon key, migration, test account, and UUID normalization for model-generated project IDs. |
-| P1 Vera Rubin explorer | Educational text only | Manufacturer reference, explicit cloud/onboard distinction. Dedicated 3D architecture explorer remains future work. |
+| P1 Vera Rubin explorer | Educational 3D schematic | Extensible family explorer, original rack schematic, verified system composition, explicit cloud/onboard distinction. Hardware access and benchmarks are unsupported. |
 | P1 additional robot types | Generic validated geometry | Arm and rover references; Nemotron may generate other bounded primitives. Physics registry remains deliberately limited. |
 | P2 Isaac / robot learning / GPU benchmarks | Planned | No claims of working integration. |
 
@@ -22,7 +24,7 @@ This tracks the delivered local slice, not a claim that all requested platform f
 
 Reference component geometry, masses, friction, and power assumptions are teaching inputs. No actuator sizing, thermal model, torque rating, battery discharge model, calibrated camera, LiDAR stream, payload rating, terrain validation, or safety certification is established. Component inspection explains the available specification; it is not a replacement for CAD/FEA, physical tests, or hardware datasheets.
 
-Hardware catalogs distinguish generic illustrative envelopes from named product reference values. `verified=false` records that manufacturer pages were not retrieved/verified during this network-restricted session. No current stock, price, commercial availability, or live benchmark is asserted. Broader historical/current NVIDIA families must be expanded only after checking their official documentation.
+Hardware catalogs distinguish generic illustrative envelopes from named product reference values. `verified=false` in the original recommendation catalog is retained. Selected manufacturer fields were retrieved for the new educational explorer; see the dated source table in the ARISE report. No current stock, price, commercial availability, or live benchmark is asserted. Broader historical/current NVIDIA families must be expanded only after checking their official documentation.
 
 ## Validation
 
@@ -51,3 +53,7 @@ Run commands in README. Live Nebius tests intentionally skip when no credential 
 - Final validation: **59 backend tests**, **6 frontend component tests**, and **6 browser regression cases** passed (browser cases verified across targeted runs). The full 3D/physics desktop and mobile workflows use reduced-motion mode and a 240-second allowance for software WebGL; both passed after initial resource-related timeouts. The separate opt-in **real Nemotron browser test passed** in normal-motion mode. Type checking, production build, and the API/physics readiness smoke also passed.
 - Client-source/traffic checks and a scan of 26 production client assets found no provider credential exposure. No public deployment or dedicated GPU provisioning was performed.
 - A separate reduced-motion development-page check logged a hydration-attribute warning (without an uncaught page exception). This remains a UI/SSR follow-up before public deployment; this integration task does not claim a warning-free UI or production GPU performance.
+
+## ARISE current milestone
+
+The cinematic extension preserves the historical provider integration described above. Visual development uses deterministic labeled fixtures and a separate server-side paid-inference guard. The reduced-motion hydration warning was resolved with a server-stable media preference snapshot and verified in the current browser journey. Static reduced-motion scenes redraw on interaction instead of continuously; explicit playback remains functional. The improvement workflow persists supported mass/setpoint inputs, predictions, solver measurements, and revision history. See the [current milestone](arise-milestone.md) for the detailed COMPLETE / PARTIAL / BLOCKED assessment, screenshots, source verification, and delivery checks.

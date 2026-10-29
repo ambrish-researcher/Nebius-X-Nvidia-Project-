@@ -111,7 +111,7 @@ def simulate(req: SimulationRequest):
     max_tilt = 0.0
     steps = int(req.duration_s / model.opt.timestep)
     for i in range(steps):
-        data.ctrl[:] = min(4.0, i * model.opt.timestep * 4.0)
+        data.ctrl[:] = min(req.wheel_speed_rad_s, i * model.opt.timestep * 4.0)
         mujoco.mj_step(model, data)
         if not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
             raise ValueError("Unstable physics configuration; simulation terminated.")
@@ -150,6 +150,10 @@ def simulate(req: SimulationRequest):
         frames=frames,
         hardware_id=req.hardware_id,
         hardware_benchmarked=False,
+        parameters=dict(
+            wheel_speed_rad_s=req.wheel_speed_rad_s,
+            design_mass_kg=sum(c.mass_kg for c in req.robot.components),
+        ),
         metrics=dict(
             simulated_seconds=float(data.time),
             wall_seconds=wall,

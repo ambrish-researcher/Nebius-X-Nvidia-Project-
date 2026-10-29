@@ -18,6 +18,13 @@ export const initialTask: Task = {
   network_available: false,
 };
 type State = {
+  visualPreview: boolean;
+  atlasFamily: string;
+  atlasConcept: string;
+  inspected: string[];
+  inspect: (id: string) => void;
+  driveSpeed: number;
+  changes: NonNullable<Project["design_changes"]>;
   robot: RobotSpec | null;
   assembly: AssemblyStep[];
   section: Section;
@@ -42,6 +49,22 @@ type State = {
   project: () => Project | null;
 };
 export const useLab = create<State>((set, get) => ({
+  visualPreview: false,
+  atlasFamily: "jetson",
+  atlasConcept: "parallel",
+  inspected: [],
+  inspect: (id) => {
+    const s = get();
+    if (s.robot?.components.some((c) => c.id === id))
+      set({
+        selected: id,
+        entered: true,
+        section: "inspect",
+        inspected: [...new Set([...s.inspected, id])],
+      });
+  },
+  driveSpeed: 4,
+  changes: [],
   robot: null,
   assembly: [],
   section: "design",
@@ -66,6 +89,9 @@ export const useLab = create<State>((set, get) => ({
     set({
       robot,
       assembly,
+      driveSpeed: 4,
+      changes: [],
+      inspected: [],
       selected: null,
       exploded: false,
       isolate: false,
@@ -82,6 +108,9 @@ export const useLab = create<State>((set, get) => ({
     return s.robot
       ? {
           id: s.robot.id,
+          controller_settings: { wheel_speed_rad_s: s.driveSpeed },
+          design_changes: s.changes,
+          inspected_components: s.inspected,
           robot: s.robot,
           task: s.task,
           hardware_id: s.hardwareId,

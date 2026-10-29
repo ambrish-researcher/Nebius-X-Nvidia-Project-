@@ -145,6 +145,7 @@ class AIRequest(StrictModel):
 
 
 class SimulationRequest(ProjectRequest):
+    wheel_speed_rad_s: float = Field(default=4, ge=0, le=8)
     duration_s: float = Field(default=6, ge=1, le=12)
     hardware_id: str = "cpu"
 
@@ -160,7 +161,22 @@ class FlashcardProgress(StrictModel):
     mastered: bool
 
 
+class ControllerSettings(StrictModel):
+    wheel_speed_rad_s: float = Field(default=4, ge=0, le=8)
+
+
+class DesignChange(StrictModel):
+    id: str
+    component_id: str
+    before_kg: float = Field(gt=0, le=1000)
+    after_kg: float = Field(gt=0, le=1000)
+    at: str
+
+
 class RobotProject(StrictModel):
+    inspected_components: list[str] = Field(default_factory=list, max_length=64)
+    controller_settings: ControllerSettings = Field(default_factory=ControllerSettings)
+    design_changes: list[DesignChange] = Field(default_factory=list, max_length=100)
     id: str
     robot: RobotSpecification
     task: RobotTask

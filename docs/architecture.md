@@ -25,7 +25,7 @@ Robot/project IDs connect task assumptions, selected hardware, experiments, quiz
 
 ## Simulation boundary
 
-The supported adapter accepts a box chassis called `chassis` and exactly four cylindrical, lateral-hinge wheel actuators. It maps the generated component coordinates into MuJoCo's Z-up frame. XML is constructed with escaped ElementTree attributes, not arbitrary model-generated XML. Other components contribute fixed collision geometry and mass. Wheel velocity setpoints ramp to 4 rad/s with force limits. Flat-plane contacts, gravity, and controller forces are actual solver output.
+The supported adapter accepts a box chassis called `chassis` and exactly four cylindrical, lateral-hinge wheel actuators. It maps the generated component coordinates into MuJoCo's Z-up frame. XML is constructed with escaped ElementTree attributes, not arbitrary model-generated XML. Other components contribute fixed collision geometry and mass. Wheel velocity setpoints ramp at 4 rad/s² to the requested bounded 0–8 rad/s target (default 4), with the existing force limits. Runs record actual design mass and the setpoint used. The improvement workflow retains predictions and previous experiment results. Flat-plane contacts, gravity, and controller forces are actual solver output.
 
 The adapter validates support structurally; an AI-provided capability label alone is insufficient. Unsupported designs receive HTTP 422. The drive experiment does not run navigation, interpret images, or satisfy an arbitrary natural-language mission. Contacts include normal wheel-floor contact. `task_completed` is null and `hardware_benchmarked` is false. Browser playback uses actual position, quaternion, joint, force, and contact samples.
 
@@ -49,3 +49,7 @@ The ledger adds `response_model`, `completed_at`, and `validated_at` without rep
 - Isaac Sim / Isaac Lab and GPU benchmarking: planned, not installed or executed.
 
 No claims are made that this app executes on NVIDIA GPUs, Jetson, Vera Rubin, or Nebius AI Cloud. Current physics runs on the development CPU.
+
+## ARISE cinematic state
+
+A separate Zustand timeline samples deterministic sphere/component poses, avoiding accumulated drift when scrubbing backward. Assembly follows the shared dependency graph. The original robot lab, controls, and physics playback remain in the same R3F scene. Client media preferences use a server-stable snapshot before applying reduced motion. A backend visual-development guard blocks provider calls independently of the browser fixture helper. See [the milestone report](arise-milestone.md) for source checks, scene scope, and remaining limits.

@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useLab } from "../lib/store";
 import { api, formatError } from "../lib/api";
+import { HardwareAtlas } from "./hardware-atlas";
+import { ImprovementPanel } from "./improvement-panel";
 import { Button } from "./ui/button";
 import type {
   Recommendation,
@@ -44,6 +46,8 @@ export function PanelContent({ onError }: Props) {
     <Simulate onError={onError} />
   ) : section === "learn" ? (
     <Learn onError={onError} />
+  ) : section === "improve" ? (
+    <ImprovementPanel onError={onError} />
   ) : (
     <History onError={onError} />
   );
@@ -148,7 +152,7 @@ function Inspect() {
           <button
             key={c.id}
             className={`component-choice ${selected === c.id ? "active" : ""}`}
-            onClick={() => set({ selected: c.id })}
+            onClick={() => useLab.getState().inspect(c.id)}
           >
             <span className={`kind-dot ${c.kind}`} />
             <span>{c.name}</span>
@@ -227,7 +231,7 @@ function Inspect() {
   );
 }
 function Challenge({ onError }: Props) {
-  const { task, robot, set } = useLab();
+  const { task, robot, visualPreview, set } = useLab();
   const [busy, setBusy] = useState(false);
   if (!robot) return null;
   const update = (patch: Partial<Task>) => set({ task: { ...task, ...patch } });
@@ -274,7 +278,7 @@ function Challenge({ onError }: Props) {
         onClick={interpret}
       >
         {busy ? <Loader2 className="spin" size={14} /> : <Plus size={14} />}{" "}
-        Interpret with NVIDIA
+        {visualPreview ? "Interpret visual fixture" : "Interpret with NVIDIA"}
       </Button>
       <p className="fine muted">
         Or set workload assumptions below. They are design inputs, not
@@ -347,7 +351,7 @@ function Challenge({ onError }: Props) {
   );
 }
 function Compute({ onError }: Props) {
-  const { robot, task, hardwareId, set } = useLab();
+  const { robot, task, hardwareId, visualPreview, set } = useLab();
   const [rec, setRec] = useState<Recommendation | null>(null);
   const [busy, setBusy] = useState(false);
   const [compare, setCompare] = useState<string[]>(["cpu", "orin-nano"]);
@@ -394,6 +398,7 @@ function Compute({ onError }: Props) {
         Computing is an engineering decision. Start with the workload, not the
         biggest GPU.
       </p>
+      <HardwareAtlas />
       <div className="data-flow">
         <span>SENSE</span>
         <ChevronRight size={10} />
@@ -538,7 +543,7 @@ function Compute({ onError }: Props) {
             ) : (
               <BookOpen size={14} />
             )}{" "}
-            Explain with NVIDIA
+            {visualPreview ? "Explain fixture" : "Explain with NVIDIA"}
           </Button>
           {explanation && <p className="ai-answer">{explanation}</p>}
           <Button onClick={() => set({ section: "simulate" })}>
@@ -550,8 +555,18 @@ function Compute({ onError }: Props) {
   );
 }
 function Simulate({ onError }: Props) {
-  const { robot, task, hardwareId, runs, playhead, playing, speed, set } =
-    useLab();
+  const {
+    robot,
+    task,
+    hardwareId,
+    runs,
+    playhead,
+    playing,
+    speed,
+    driveSpeed,
+    visualPreview,
+    set,
+  } = useLab();
   const [busy, setBusy] = useState(false);
   const [duration, setDuration] = useState(6);
   const [analysis, setAnalysis] = useState("");
@@ -594,6 +609,7 @@ function Simulate({ onError }: Props) {
         task,
         hardware_id: hardwareId,
         duration_s: duration,
+        wheel_speed_rad_s: driveSpeed,
       });
       set({ runs: [...runs.slice(-19), result], playhead: 0, playing: true });
     } catch (e) {
@@ -754,7 +770,9 @@ function Simulate({ onError }: Props) {
             ) : (
               <BookOpen size={14} />
             )}{" "}
-            Analyze recorded results with NVIDIA
+            {visualPreview
+              ? "Review recorded results fixture"
+              : "Analyze recorded results with NVIDIA"}
           </Button>
           {analysis && <div className="ai-answer">{analysis}</div>}
           <Button onClick={() => set({ section: "learn" })}>
@@ -773,6 +791,7 @@ function Learn({ onError }: Props) {
     runs,
     attempts,
     cards: progress,
+    visualPreview,
     set,
   } = useLab();
   const [tab, setTab] = useState("tutor");
@@ -830,6 +849,11 @@ function Learn({ onError }: Props) {
         Learning grounded in your robot, its components, and the experiments you
         actually ran.
       </p>
+      {visualPreview && (
+        <div className="provenance">
+          DETERMINISTIC VISUAL EXERCISES / NO MODEL INFERENCE
+        </div>
+      )}
       <div className="segmented">
         {["tutor", "quiz", "flashcards"].map((t) => (
           <button
@@ -873,13 +897,14 @@ function Learn({ onError }: Props) {
             ) : (
               <BookOpen size={14} />
             )}{" "}
-            Ask the NVIDIA tutor
+            {visualPreview ? "Ask visual tutor" : "Ask the NVIDIA tutor"}
           </Button>
           {answer && <div className="ai-answer">{answer}</div>}
           {!answer && (
             <Notice>
-              The tutor requires a configured Nebius-hosted Nemotron model. It
-              will not return a scripted response.
+              {visualPreview
+                ? "Visual preview uses labeled, deterministic explanations. No model inference is sent."
+                : "The tutor requires a configured Nebius-hosted Nemotron model. It will not return a scripted response."}
             </Notice>
           )}
         </>
@@ -1004,16 +1029,29 @@ function Learn({ onError }: Props) {
         </a>
         <h4>ROBOTICS ECOSYSTEM / STATUS</h4>
         {[
-          ["MuJoCo", "Integrated physics"],
+          ["MuJoCo", "INTEGRATED · actual CPU physics"],
           [
             "Nebius Token Factory",
-            "Implemented adapter · live verification pending",
+            visualPreview
+              ? "INTEGRATED adapter · preview fixtures; paid calls blocked"
+              : "INTEGRATED adapter · verification evidence in Connections",
           ],
-          ["Supabase", "Implemented adapter · project required"],
-          ["Isaac Sim / Isaac Lab", "Planned"],
-          ["Isaac ROS / JetPack", "Educational context"],
-          ["Cosmos / GR00T", "Educational context"],
-          ["CUDA / TensorRT", "Educational context · no measured deployment"],
+          [
+            "Supabase",
+            "PLANNED live validation · adapter present; project required",
+          ],
+          ["Isaac Sim / Isaac Lab", "PLANNED · not installed"],
+          ["Isaac ROS / JetPack", "EDUCATIONAL DEMONSTRATION"],
+          ["Cosmos / GR00T", "EDUCATIONAL DEMONSTRATION"],
+          [
+            "CUDA / TensorRT",
+            "EDUCATIONAL DEMONSTRATION · no measured deployment",
+          ],
+          [
+            "Omniverse / PhysX",
+            "EDUCATIONAL DEMONSTRATION · no execution integration",
+          ],
+          ["GPU benchmarking", "UNSUPPORTED in the current prototype"],
         ].map(([a, b]) => (
           <p key={a}>
             <b>{a}</b>
@@ -1067,6 +1105,9 @@ function History({ onError }: Props) {
       runs: p.simulation_runs,
       attempts: p.quiz_attempts,
       cards: p.flashcard_progress,
+      driveSpeed: p.controller_settings?.wheel_speed_rad_s ?? 4,
+      changes: p.design_changes || [],
+      inspected: p.inspected_components || [],
       selected: null,
       playing: false,
       playhead: 0,

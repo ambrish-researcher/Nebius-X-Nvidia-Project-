@@ -56,6 +56,7 @@ def health():
     verification = ai.verification_status()
     return dict(
         status="ok",
+        visual_preview=os.getenv("ARISE_VISUAL_DEV") == "1",
         physics="mujoco",
         nebius_configured=bool(os.getenv("NEBIUS_API_KEY")),
         model_configured=bool(os.getenv("NEBIUS_MODEL_ID")),

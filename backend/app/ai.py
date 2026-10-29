@@ -103,6 +103,11 @@ def verification_status():
 
 
 def settings():
+    if os.getenv("ARISE_VISUAL_DEV") == "1":
+        raise HTTPException(
+            503,
+            "ARISE visual preview blocks paid inference. Use the labeled deterministic fixtures.",
+        )
     key = os.getenv("NEBIUS_API_KEY")
     if not key:
         raise HTTPException(

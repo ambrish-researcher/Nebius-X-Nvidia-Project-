@@ -2259,3 +2259,1353 @@ small {
     scroll-behavior: auto !important;
   }
 }
+/* ARISE: one world, from an idea to an experiment. Original procedural scenes. */
+.arise-world {
+  --bg: #07080b;
+  --text: #f8f8fb;
+  --muted: #a0a1b1;
+  --border: #cbd0ff24;
+  background: var(--bg);
+}
+.arise-world .brand {
+  font-size: 30px;
+  letter-spacing: -1.6px;
+  font-weight: 700;
+  gap: 12px;
+}
+.arise-world .brand > b,
+.arise-world .brand b {
+  display: block;
+  font: 8px var(--mono);
+  letter-spacing: 1.5px;
+  margin-top: 3px;
+  color: #b4b1c8;
+}
+.arise-world .brand-symbol {
+  transform: rotate(-30deg) scale(0.8);
+}
+.arise-world .brand-symbol span {
+  border-color: #ddd5ff;
+}
+.arise-world .topbar {
+  height: 92px;
+  border-color: #c5c5ff20;
+}
+.arise-world .topbar nav button {
+  font-size: 14px;
+  color: #d1cfe0;
+}
+.arise-world .connection-status {
+  font-size: 10px;
+  color: #cec9e1;
+}
+.arise-world .eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.9px;
+  color: #beb5d4;
+}
+.cinematic-world .scene-container {
+  position: absolute;
+  inset: 92px 0 auto;
+  width: 100%;
+  height: 850px;
+  left: 0;
+}
+.cinematic-world .scene-vignette {
+  background:
+    linear-gradient(90deg, #07080beb, transparent 65%),
+    linear-gradient(0deg, #07080b 0%, transparent 22%);
+  pointer-events: none;
+}
+.cinematic-world .scene-coordinate.top-left {
+  display: none;
+}
+.cinematic-world .scene-coordinate.bottom-right {
+  bottom: 65px;
+  right: 5%;
+  font-size: 9px;
+}
+.cinematic-world .robot-callout {
+  display: none;
+}
+.legacy-hero {
+  visibility: hidden;
+  height: 650px;
+  min-height: 650px;
+  pointer-events: none;
+}
+.cinema-copy {
+  position: absolute;
+  z-index: 3;
+  top: 172px;
+  left: 6.4%;
+  pointer-events: none;
+  max-width: 83%;
+}
+.cinema-copy h1 {
+  font:
+    700 clamp(64px, 7.9vw, 126px)/0.92 Arial,
+    Helvetica,
+    sans-serif;
+  letter-spacing: -0.075em;
+  margin: 30px 0 28px;
+  max-width: 900px;
+}
+.cinema-copy h1 span {
+  color: #aaa6bf;
+}
+.cinema-copy p {
+  font-size: clamp(16px, 1.35vw, 22px);
+  line-height: 1.55;
+  color: #c2bdd1;
+  max-width: 420px;
+}
+.cinema-copy-intro {
+  max-width: 70%;
+}
+.cinema-copy-prompt h1 {
+  font-size: clamp(60px, 7.2vw, 112px);
+  max-width: 760px;
+}
+.cinema-copy-transform h1 {
+  font-size: clamp(64px, 8.6vw, 140px);
+}
+.cinema-copy-transform p {
+  font-size: 19px;
+}
+.guide-disclaimer,
+.cinema-fact {
+  display: block;
+  font: 9px var(--mono);
+  letter-spacing: 1.2px;
+  color: #8b849b;
+  margin-top: 30px;
+}
+.cinema-chapters {
+  position: absolute;
+  left: 6.5%;
+  top: 672px;
+  display: flex;
+  gap: 25px;
+  z-index: 6;
+}
+.cinema-chapters button {
+  font-size: 12px;
+  color: #9c94ad;
+  border-top: 1px solid #494252;
+  padding: 13px 0;
+  min-width: 75px;
+  text-align: left;
+}
+.cinema-chapters button span {
+  font: 8px var(--mono);
+  margin-right: 10px;
+  color: #a58fba;
+}
+.cinema-chapters button[aria-pressed="true"] {
+  color: #fff;
+  border-color: #e6cbff;
+}
+.cinema-transport {
+  position: absolute;
+  top: 745px;
+  left: 6.5%;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  z-index: 7;
+  background: #0c0b13bb;
+  border: 1px solid #d5baff2b;
+  padding: 9px 13px;
+  backdrop-filter: blur(15px);
+}
+.cinema-transport > button {
+  display: flex;
+  padding: 6px;
+}
+.cinema-transport > span {
+  font: 10px var(--mono);
+  color: #aca0bd;
+  white-space: nowrap;
+}
+.cinema-transport input {
+  width: 145px;
+  accent-color: #d2b5ed;
+}
+.cinema-transport select {
+  width: 55px;
+  font-size: 11px;
+  padding: 7px;
+  border: 0;
+}
+.preview-ribbon {
+  position: relative;
+  z-index: 14;
+  margin: 0 6.5%;
+  padding-top: 12px;
+  font: 9px var(--mono);
+  color: #b5a6c5;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+.arise-reveal {
+  position: absolute;
+  z-index: 9;
+  inset: 92px 0 auto;
+  height: 720px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+}
+.arise-reveal > p {
+  font: 12px var(--mono);
+  letter-spacing: 5px;
+  color: #a6a1b0;
+}
+.arise-reveal strong {
+  font: bold clamp(100px, 24vw, 390px)/1 Arial;
+  letter-spacing: -0.09em;
+  padding-right: 0.09em;
+  animation: arise-reveal 1.7s cubic-bezier(0.15, 0.7, 0.1, 1) both;
+}
+.arise-reveal button {
+  font-size: 17px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 35px;
+}
+.phase-reveal .cinema-chapters,
+.phase-reveal .cinema-transport {
+  z-index: 10;
+}
+.phase-reveal .scene-coordinate {
+  display: none;
+}
+@keyframes arise-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+    letter-spacing: 0.01em;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    letter-spacing: -0.09em;
+  }
+}
+.arise-world .prompt-area {
+  margin-top: 100px;
+  max-width: 1380px;
+}
+.arise-world .prompt-console {
+  border-color: #b8a2d268;
+  background: #15121dcc;
+  padding: 33px 35px 23px;
+  box-shadow: 0 35px 100px #0005;
+}
+.arise-world .prompt-console > label {
+  font-size: clamp(24px, 2.7vw, 42px);
+  letter-spacing: -1px;
+}
+.arise-world .prompt-input-row textarea {
+  font-size: 17px;
+  min-height: 76px;
+  color: #ddd5ea;
+}
+.arise-world .prompt-input-row textarea::placeholder {
+  color: #9d90af;
+}
+.arise-world .generate-button {
+  background: #e8d9ff;
+  color: #17121e;
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+}
+.arise-world .prompt-kicker,
+.arise-world .prompt-bottom,
+.arise-world .prompt-suggestions > span {
+  font-size: 10px;
+  color: #a499b7;
+}
+.arise-world .prompt-suggestions {
+  gap: 25px;
+}
+.arise-world .prompt-suggestions button {
+  font-size: 13px;
+}
+.arise-world .reference-note {
+  font-size: 9px !important;
+}
+.arise-world .journey-heading > p {
+  font-size: 50px;
+  width: 51%;
+}
+.arise-world .journey-cards h3 {
+  font-size: 27px;
+}
+.arise-world .journey-cards p {
+  font-size: 15px;
+  color: #aba4bc;
+  line-height: 1.6;
+}
+.arise-world .journey-cards button {
+  min-height: 260px;
+  padding-top: 30px;
+}
+.arise-world .footer {
+  font-size: 9px;
+}
+.arise-world .footer p {
+  font-size: 13px;
+}
+.arise-world .footer button {
+  font-size: 10px;
+}
+.arise-world.in-lab .topbar {
+  height: 80px;
+}
+.arise-world.in-lab .scene-container {
+  top: 80px;
+  height: calc(100% - 130px);
+  background: #101116;
+}
+.arise-world.in-lab .scene-vignette {
+  background: linear-gradient(
+    90deg,
+    transparent 30%,
+    #10111622 52%,
+    #101116ed 75%
+  );
+}
+.arise-world.in-lab .preview-ribbon {
+  position: absolute;
+  top: 86px;
+  left: 126px;
+  margin: 0;
+  font-size: 8px;
+  padding: 0;
+  max-width: 55%;
+}
+.arise-world .lab-panel {
+  width: 420px;
+  padding-left: 22px;
+  padding-right: 16px;
+  top: 130px;
+  bottom: 68px;
+}
+.arise-world .lab-panel h2 {
+  font-size: clamp(42px, 3.6vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -2px;
+  margin: 20px 0 24px;
+}
+.arise-world .panel-intro {
+  font-size: 16px;
+  line-height: 1.65;
+  color: #b7aec9;
+}
+.arise-world .lab-heading {
+  top: 130px;
+  max-width: calc(100% - 620px);
+}
+.arise-world .lab-heading h1 {
+  font-size: clamp(26px, 2.6vw, 43px);
+  line-height: 1.1;
+  color: #fff;
+}
+.arise-world .lab-nav {
+  top: 140px;
+}
+.arise-world .lab-nav > button > span {
+  font-size: 12px;
+}
+.arise-world .lab-nav > button {
+  padding-block: 12px;
+  gap: 7px;
+}
+.arise-world .lab-model-meta {
+  font-size: 10px;
+}
+.arise-world .lab-bottom {
+  font-size: 9px;
+  height: 48px;
+}
+.arise-world .lab-bottom > span:last-child {
+  font-size: 8px;
+}
+.arise-world .component-choice {
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 13px 8px;
+}
+.arise-world .inspection h3 {
+  font-size: 28px;
+}
+.arise-world .inspection p,
+.arise-world .fine {
+  font-size: 14px;
+  line-height: 1.75;
+}
+.arise-world .inspection h4,
+.arise-world .field-label {
+  font-size: 11px;
+  line-height: 1.6;
+}
+.arise-world .segmented button {
+  font-size: 13px;
+  padding: 13px 4px;
+}
+.arise-world .spec-rows > div,
+.arise-world .spec-rows b {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.arise-world .spec-rows span {
+  white-space: normal;
+}
+.arise-world .provenance {
+  font-size: 10px;
+  letter-spacing: 0.7px;
+  padding: 14px 0;
+}
+.arise-world .notice {
+  font-size: 13px;
+  padding: 16px;
+  line-height: 1.65;
+}
+.arise-world .button {
+  font-size: 14px;
+  padding: 15px 17px;
+}
+.arise-world .assembly-list p {
+  font-size: 12px;
+}
+.arise-world .stat-grid strong {
+  font-size: 48px;
+}
+.arise-world .stat-grid span {
+  font-size: 10px;
+  line-height: 1.5;
+}
+.arise-world .toggle-list label {
+  font-size: 14px;
+}
+.arise-world .input-pair label {
+  font-size: 12px;
+}
+.arise-world .hardware-name b {
+  font-size: 16px;
+}
+.arise-world .hardware-name > span,
+.arise-world .hardware-name small {
+  font-size: 10px;
+}
+.arise-world .hardware-footer {
+  font-size: 9px;
+}
+.arise-world .hardware-footer label {
+  font-size: 11px;
+}
+.arise-world .hardware-reason {
+  font-size: 12px;
+}
+.arise-world .comparison table {
+  font-size: 12px;
+}
+.arise-world .comparison th,
+.arise-world .comparison td:first-child {
+  font-size: 11px;
+}
+.arise-world .source-note p,
+.arise-world .source-note a {
+  font-size: 12px;
+}
+.arise-world .source-note small {
+  font-size: 10px;
+}
+.arise-world .ai-answer {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.arise-world .quiz-card h3 {
+  font-size: 18px;
+}
+.arise-world .quiz-card > button {
+  font-size: 14px;
+  padding: 14px 9px;
+}
+.arise-world .quiz-card > p {
+  font-size: 14px;
+}
+.arise-world .flashcard p {
+  font-size: 18px;
+}
+.arise-world .flashcard > label {
+  font-size: 13px;
+}
+.arise-world .learning-progress {
+  font-size: 10px;
+  gap: 15px;
+  line-height: 1.8;
+}
+.arise-world .ecosystem,
+.arise-world .ecosystem p {
+  font-size: 14px;
+}
+.arise-world .ecosystem h3 {
+  font-size: 22px;
+}
+.arise-world .ecosystem summary {
+  font-size: 15px;
+}
+.arise-world .joint-row {
+  font-size: 10px;
+  flex-wrap: wrap;
+}
+.arise-world .joint-row b {
+  font-size: 11px;
+}
+.arise-world .joint-row small {
+  font-size: 10px;
+}
+.arise-world .result-header {
+  font-size: 11px;
+}
+.arise-world .experiment-title {
+  font-size: 11px;
+}
+.arise-world .experiment-title > span:last-child {
+  font-size: 10px;
+}
+.arise-world .history-run b {
+  font-size: 15px;
+}
+.arise-world .history-run small {
+  font-size: 11px;
+}
+.arise-world .warning {
+  font-size: 13px;
+}
+.arise-world .viewport-toolbar {
+  bottom: 95px;
+}
+.arise-world .viewport-hint {
+  bottom: 160px;
+}
+.arise-world .viewport-hint {
+  font-size: 9px;
+}
+.arise-world .viewport-hint > span:last-child {
+  font-size: 8px;
+}
+.arise-world .scene-coordinate.bottom-right {
+  right: 465px;
+  bottom: 110px;
+}
+.arise-world .modal {
+  max-width: 590px;
+}
+.arise-world .modal h2 {
+  font-size: 44px;
+}
+.arise-world .modal .fine {
+  font-size: 14px;
+}
+.arise-world .modal .spec-rows span {
+  font-size: 13px;
+}
+.arise-world .toast p {
+  font-size: 13px;
+}
+.hardware-atlas {
+  margin: 27px 0;
+  border-block: 1px solid #b8eb7730;
+  padding: 25px 0;
+}
+.atlas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 17px;
+}
+.atlas-grid button {
+  text-align: left;
+  padding: 17px 13px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.3;
+  background: #1b251d55;
+}
+.atlas-grid button small {
+  display: block;
+  font: 9px var(--mono);
+  color: #91b57c;
+  margin-top: 7px;
+}
+.atlas-grid button.active {
+  border-color: #b8eb77;
+  color: #d6f5bd;
+}
+.atlas-detail {
+  border-left: 1px solid #a6c687;
+  padding-left: 17px;
+  margin-top: 22px;
+}
+.atlas-detail h3 {
+  font-size: 23px;
+  font-weight: 400;
+}
+.atlas-detail p {
+  font-size: 14px;
+  color: #aebea3;
+}
+.atlas-detail a {
+  font-size: 12px;
+  color: #b8eb77;
+}
+.atlas-detail .eyebrow {
+  font-size: 10px;
+}
+.evolution-controls label {
+  display: block;
+  font-size: 13px;
+  color: #b4a7c5;
+  margin: 18px 0 8px;
+}
+.evolution-controls input,
+.evolution-controls select {
+  margin-top: 8px;
+}
+.revision-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 25px 0;
+}
+.revision-comparison > div {
+  padding: 20px 13px;
+  border: 1px solid var(--border);
+  background: #15131d;
+}
+.revision-comparison strong {
+  font-size: 34px;
+  font-weight: 400;
+  display: block;
+  margin-top: 14px;
+}
+.revision-comparison small {
+  display: block;
+  font-size: 11px;
+  color: #aaa0ba;
+  margin-top: 9px;
+}
+.decision-list {
+  padding: 0;
+  list-style: none;
+}
+.decision-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b8adc7;
+}
+.knowledge-summary {
+  padding: 24px 19px;
+  border: 1px solid #d7bdff44;
+  margin: 22px 0;
+  background: #21172b77;
+}
+.knowledge-summary h3 {
+  font-size: 27px;
+  letter-spacing: -0.7px;
+}
+.knowledge-summary p {
+  font-size: 14px;
+  color: #c2b1d3;
+  margin-bottom: 9px;
+}
+.knowledge-summary button {
+  margin-bottom: 0;
+}
+@media (min-width: 1600px) {
+  .arise-world .lab-panel {
+    width: 470px;
+    right: 3%;
+  }
+  .arise-world .lab-heading {
+    max-width: 50%;
+  }
+  .arise-world .cinema-copy {
+    top: 180px;
+  }
+  .arise-world .scene-coordinate.bottom-right {
+    right: 535px;
+  }
+}
+@media (max-width: 1150px) {
+  .arise-world .lab-panel {
+    width: 365px;
+    right: 16px;
+  }
+  .arise-world .lab-heading {
+    max-width: calc(100% - 520px);
+  }
+  .arise-world .lab-heading h1 {
+    font-size: 30px;
+  }
+  .arise-world .scene-coordinate.bottom-right {
+    right: 405px;
+  }
+  .arise-world .topbar nav {
+    gap: 20px;
+  }
+  .arise-world .topbar nav button {
+    font-size: 12px;
+  }
+  .arise-world .lab-panel h2 {
+    font-size: 44px;
+  }
+  .arise-world .viewport-hint > span:last-child {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .arise-world .topbar {
+    height: 80px;
+  }
+  .arise-world .brand {
+    font-size: 27px;
+    letter-spacing: -1px;
+  }
+  .arise-world .brand b {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .arise-world .connection-status {
+    font-size: 7px;
+  }
+  .cinematic-world .scene-container {
+    top: 170px;
+    height: 630px;
+  }
+  .cinematic-world .scene-vignette {
+    background: linear-gradient(
+      0deg,
+      #07080b,
+      transparent 35%,
+      transparent 70%,
+      #07080b
+    );
+  }
+  .legacy-hero {
+    height: 690px;
+    min-height: 690px;
+  }
+  .cinema-copy {
+    left: 7%;
+    top: 136px;
+    max-width: 90%;
+  }
+  .cinema-copy h1,
+  .cinema-copy-prompt h1 {
+    font-size: clamp(46px, 13.5vw, 76px);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+    max-width: 390px;
+    margin: 20px 0 18px;
+  }
+  .cinema-copy p {
+    font-size: 15px;
+    max-width: 270px;
+  }
+  .cinema-copy > .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .cinema-copy-intro {
+    max-width: 95%;
+  }
+  .guide-disclaimer {
+    font-size: 7px;
+    margin-top: 20px;
+  }
+  .cinema-chapters {
+    top: 660px;
+    left: 7%;
+    gap: 13px;
+    right: 7%;
+  }
+  .cinema-chapters button {
+    font-size: 10px;
+    min-width: 0;
+    flex: 1;
+    line-height: 1.5;
+  }
+  .cinema-chapters button span {
+    display: block;
+    font-size: 7px;
+    margin: 0 0 6px;
+  }
+  .cinema-transport {
+    left: 7%;
+    right: 7%;
+    top: 728px;
+    gap: 9px;
+    justify-content: space-between;
+    padding: 8px 6px;
+  }
+  .cinema-transport input {
+    width: 80px;
+    min-width: 30px;
+  }
+  .cinema-transport > span {
+    font-size: 8px;
+  }
+  .cinema-transport select {
+    width: 42px;
+    padding: 5px;
+    font-size: 9px;
+  }
+  .cinema-transport button {
+    padding: 5px;
+  }
+  .arise-world .prompt-area {
+    margin: 90px 6% 0;
+  }
+  .arise-world .prompt-console {
+    padding: 23px 20px 17px;
+  }
+  .arise-world .prompt-console > label {
+    font-size: 25px;
+    line-height: 1.2;
+    max-width: 260px;
+  }
+  .arise-world .prompt-input-row textarea {
+    font-size: 14px;
+    min-height: 108px;
+  }
+  .arise-world .generate-button {
+    width: 43px;
+    height: 43px;
+    min-width: 43px;
+  }
+  .arise-world .prompt-bottom {
+    font-size: 6px;
+    line-height: 1.6;
+    gap: 8px;
+  }
+  .arise-world .prompt-kicker {
+    font-size: 7px;
+    line-height: 1.7;
+  }
+  .arise-world .prompt-suggestions {
+    gap: 13px;
+  }
+  .arise-world .prompt-suggestions > span {
+    font-size: 8px;
+  }
+  .arise-world .prompt-suggestions button {
+    font-size: 12px;
+  }
+  .arise-world .journey {
+    margin-top: 75px;
+  }
+  .arise-world .journey-heading > p {
+    font-size: 39px;
+    width: 100%;
+  }
+  .arise-world .journey-cards button {
+    min-height: 210px;
+  }
+  .arise-world .journey-cards h3 {
+    font-size: 25px;
+  }
+  .arise-world .journey-cards p {
+    font-size: 15px;
+  }
+  .arise-world .footer p {
+    font-size: 12px;
+  }
+  .arise-world .footer > span {
+    font-size: 8px;
+  }
+  .arise-world .footer button {
+    font-size: 9px;
+  }
+  .arise-world .preview-ribbon {
+    margin: 0 7%;
+    font-size: 7px;
+    letter-spacing: 0.5px;
+    line-height: 1.7;
+  }
+  .arise-reveal {
+    inset: 80px 0 auto;
+    height: 700px;
+  }
+  .arise-reveal strong {
+    font-size: 30vw;
+  }
+  .arise-reveal > p {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+  .arise-reveal button {
+    font-size: 14px;
+  }
+  .arise-world.in-lab .scene-container {
+    top: 267px;
+    height: 430px;
+  }
+  .arise-world.in-lab .preview-ribbon {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 10px 6%;
+    max-width: 90%;
+    font-size: 7px;
+  }
+  .arise-world .lab-nav {
+    top: 0;
+    gap: 0;
+    padding-inline: 4%;
+    background: #07080b;
+  }
+  .arise-world .lab-nav > button {
+    padding: 10px 9px;
+  }
+  .arise-world .lab-nav > button > span {
+    font-size: 10px;
+  }
+  .arise-world .lab-heading {
+    top: 0;
+    max-width: 100%;
+    margin-top: 23px;
+  }
+  .arise-world .lab-heading h1 {
+    font-size: 29px;
+    max-width: 100%;
+  }
+  .arise-world .lab-heading .eyebrow {
+    font-size: 9px;
+  }
+  .arise-world .lab-panel {
+    position: relative;
+    top: 0;
+    right: 0;
+    width: auto;
+    bottom: auto;
+    padding: 27px 0 45px;
+    margin: 30px 6% 0;
+  }
+  .arise-world .lab-panel h2 {
+    font-size: clamp(42px, 12vw, 60px);
+    line-height: 1.06;
+  }
+  .arise-world .viewport-toolbar {
+    position: relative;
+    margin-top: 350px;
+    bottom: auto;
+  }
+  .arise-world .viewport-hint {
+    top: 300px;
+    bottom: auto;
+    font-size: 8px;
+  }
+  .arise-world .scene-coordinate.bottom-right {
+    right: 6%;
+    bottom: 80px;
+    font-size: 7px;
+  }
+  .arise-world .component-grid {
+    grid-template-columns: 1fr;
+  }
+  .arise-world .component-choice {
+    font-size: 15px;
+  }
+  .arise-world .button {
+    font-size: 14px;
+  }
+  .arise-world .lab-bottom {
+    height: 65px;
+    font-size: 8px;
+    line-height: 1.6;
+  }
+  .arise-world .lab-bottom > span:last-child {
+    display: none;
+  }
+  .arise-world .lab-panel > .eyebrow,
+  .arise-world .lab-panel .eyebrow {
+    font-size: 11px;
+  }
+  .arise-world .history-run b {
+    font-size: 14px;
+  }
+  .arise-world .modal {
+    padding: 35px 22px;
+  }
+  .arise-world .modal h2 {
+    font-size: 37px;
+  }
+  .arise-world .modal .spec-rows > div,
+  .arise-world .modal .spec-rows b {
+    font-size: 12px;
+  }
+  .arise-world .toast p {
+    font-size: 12px;
+  }
+  .atlas-grid button {
+    font-size: 14px;
+  }
+  .atlas-grid {
+    gap: 9px;
+  }
+  .revision-comparison strong {
+    font-size: 32px;
+  }
+}
+.cinema-copy .intro-arise {
+  font-size: clamp(5rem, 12vw, 12rem);
+  letter-spacing: -0.085em;
+  margin-block: 40px 24px;
+  line-height: 0.9;
+}
+.cinema-copy .arise-tagline {
+  font-size: clamp(15px, 1.5vw, 22px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  max-width: 520px;
+  color: #fff;
+}
+.intro-actions {
+  display: flex;
+  gap: 25px;
+  pointer-events: auto;
+  margin-top: 30px;
+  align-items: center;
+}
+.intro-actions button {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 12px;
+  letter-spacing: 0.7px;
+  border-bottom: 1px solid #a493b2;
+  padding: 10px 0;
+}
+.intro-actions button:first-child {
+  color: #fff;
+}
+.intro-actions button:last-child {
+  color: #aaa0b7;
+}
+.cinema-copy-intro {
+  pointer-events: none;
+}
+.intro-actions button:hover {
+  color: #e1c6ff;
+}
+@media (max-width: 760px) {
+  .cinema-copy .intro-arise {
+    font-size: 25vw;
+    margin-block: 28px 20px;
+  }
+  .cinema-copy .arise-tagline {
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 300px;
+  }
+  .intro-actions {
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .intro-actions button {
+    font-size: 10px;
+    gap: 9px;
+  }
+}
+.phase-prompt .cinema-copy-prompt {
+  top: 155px;
+}
+.phase-prompt .cinema-copy-prompt h1 {
+  font-size: clamp(55px, 6.7vw, 100px);
+  line-height: 0.93;
+}
+.phase-prompt .cinema-chapters {
+  top: 548px;
+}
+.phase-prompt .cinema-transport {
+  top: 612px;
+}
+.arise-world.phase-prompt .prompt-area {
+  margin-top: 0;
+}
+@media (max-width: 760px) {
+  .phase-prompt .cinema-copy-prompt {
+    top: 145px;
+  }
+  .phase-prompt .cinema-copy-prompt h1 {
+    font-size: 14vw;
+  }
+  .phase-prompt .cinema-chapters {
+    top: 546px;
+  }
+  .phase-prompt .cinema-transport {
+    top: 612px;
+  }
+  .arise-world.phase-prompt .prompt-area {
+    margin-top: 0;
+  }
+}
+.phase-prompt .cinema-chapters {
+  top: 605px;
+}
+.phase-prompt .cinema-transport {
+  top: 678px;
+}
+.phase-reveal .arise-reveal {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  z-index: 25;
+}
+.phase-reveal .cinema-transport {
+  position: fixed;
+  top: auto;
+  bottom: 22px;
+  z-index: 30;
+}
+.phase-reveal .cinema-chapters {
+  display: none;
+}
+@media (max-width: 760px) {
+  .phase-prompt .cinema-chapters {
+    top: 545px;
+  }
+  .phase-prompt .cinema-transport {
+    top: 612px;
+  }
+}
+.arise-world .inspection p {
+  font-size: 16px;
+}
+.arise-world .button {
+  font-size: 15px;
+}
+.arise-world .atlas-detail p {
+  font-size: 15px;
+}
+.arise-world .ecosystem p {
+  font-size: 15px;
+}
+/* Keep construction labels readable while the specification assembles on the right. */
+.cinema-copy-transform {
+  max-width: 49%;
+}
+.cinema-copy-transform h1 {
+  font-size: clamp(50px, 5.8vw, 98px);
+}
+.assembly-readout {
+  margin-top: 25px;
+  border-left: 1px solid #c1a1e6;
+  padding: 0 0 0 17px;
+  max-width: 430px;
+}
+.assembly-readout .eyebrow {
+  font-size: 10px;
+}
+.assembly-readout strong {
+  display: block;
+  font-size: 19px;
+  margin-top: 12px;
+  line-height: 1.3;
+}
+.cinema-copy-transform .assembly-readout p {
+  font-size: 15px;
+  margin-top: 7px;
+  line-height: 1.55;
+}
+@media (max-width: 760px) {
+  .cinema-copy-transform {
+    max-width: 88%;
+  }
+  .cinema-copy-transform h1 {
+    font-size: 13vw;
+  }
+  .cinema-copy-transform > p {
+    display: none;
+  }
+  .cinema-copy-transform .cinema-fact {
+    margin-top: 18px;
+    font-size: 8px;
+  }
+  .assembly-readout {
+    max-width: 280px;
+    margin-top: 20px;
+  }
+  .assembly-readout strong {
+    font-size: 16px;
+  }
+  .cinema-copy-transform .assembly-readout p {
+    font-size: 13px;
+  }
+}
+.catalog-example {
+  border-block: 1px solid #ccbde12b;
+  padding: 18px 0;
+  margin-top: 15px;
+  font-size: 15px;
+}
+.catalog-example summary {
+  cursor: pointer;
+  line-height: 1.5;
+}
+.catalog-example dl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  font-size: 14px;
+  margin-block: 20px;
+}
+.catalog-example dt {
+  color: #aca2bf;
+}
+.catalog-example dd {
+  margin: 0;
+  line-height: 1.6;
+}
+.catalog-example p,
+.compute-concepts p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #c9bfd7;
+}
+.catalog-example a {
+  font-size: 12px;
+  text-decoration: underline;
+  line-height: 1.7;
+}
+.compute-concepts {
+  margin-top: 30px;
+}
+.concept-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 17px;
+}
+.concept-tabs button {
+  padding: 13px 9px;
+  text-align: left;
+  font-size: 13px;
+  border: 1px solid #bba7d13d;
+  line-height: 1.4;
+}
+.concept-tabs button[aria-pressed="true"] {
+  background: #a28ac122;
+  border-color: #c6a5ed;
+}
+.assembly-readout small {
+  display: block;
+  font-size: 12px;
+  color: #b8aacb;
+  margin-top: 7px;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .phase-intro .scene-container {
+    top: 240px;
+    height: 650px;
+  }
+  .phase-intro .legacy-hero {
+    height: 830px;
+    min-height: 830px;
+  }
+  .phase-intro .cinema-chapters {
+    top: 805px;
+  }
+  .phase-intro .cinema-transport {
+    top: 875px;
+  }
+}
+/* On narrow screens, keep the model, controls, and lesson in a readable flow. */
+@media (max-width: 760px) {
+  .arise-world.in-lab {
+    display: flex;
+    flex-direction: column;
+  }
+  .arise-world.in-lab .topbar {
+    order: 0;
+    flex-shrink: 0;
+  }
+  .arise-world.in-lab .preview-ribbon {
+    order: 1;
+  }
+  .arise-world.in-lab .lab-nav {
+    order: 2;
+    flex-shrink: 0;
+  }
+  .arise-world.in-lab .lab-heading {
+    order: 3;
+  }
+  .arise-world.in-lab .scene-container {
+    order: 4;
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: 430px;
+    flex-shrink: 0;
+    margin-top: 20px;
+  }
+  .arise-world.in-lab .scene-vignette {
+    background: linear-gradient(
+      180deg,
+      #07080b,
+      transparent 12%,
+      transparent 82%,
+      #07080b
+    );
+  }
+  .arise-world.in-lab .viewport-hint {
+    order: 5;
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    margin: 12px 6% 0;
+  }
+  .arise-world.in-lab .viewport-toolbar {
+    order: 6;
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 15px auto 0;
+    flex-shrink: 0;
+  }
+  .arise-world.in-lab .lab-panel {
+    order: 7;
+    flex-shrink: 0;
+    margin-top: 30px;
+  }
+  .arise-world.in-lab .lab-bottom {
+    order: 8;
+  }
+  .arise-world.in-lab .scene-coordinate.bottom-right {
+    bottom: 16px;
+    right: 6%;
+  }
+}
+/* Answered choices remain readable after interaction is locked. */
+.arise-world .quiz-card button:disabled {
+  opacity: 1;
+  cursor: default;
+}

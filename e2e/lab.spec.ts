@@ -1,6 +1,14 @@
 import { test, expect } from "@playwright/test";
 // Offline/error UI coverage is explicit; never spend live tokens in the default suite.
 test.beforeEach(async ({ page }) => {
+  // Exercise the original network workflows against explicit mocks even when
+  // the local visual-development server has fixture mode enabled.
+  await page.route("**/api/health", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      json: { ...(await response.json()), visual_preview: false },
+    });
+  });
   for (const route of ["**/api/ai", "**/api/generate"])
     await page.route(route, (r) =>
       r.fulfill({
@@ -24,7 +32,7 @@ test("reference robot → inspect → compute → real physics → persistence",
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /An idea/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "ARISE home" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Autonomous rover" }),
   ).toBeEnabled();
@@ -93,7 +101,7 @@ test("reference robot → inspect → compute → real physics → persistence",
   await page.getByRole("button", { name: "Notebook", exact: true }).click();
   await expect(page.getByText("THIS ROBOT / 1 EXPERIMENTS")).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "Step inside the lab" }).click();
+  await page.getByRole("button", { name: "Skip cinematic" }).click();
   await page.getByRole("button", { name: "Notebook", exact: true }).click();
   await expect(page.getByText("THIS ROBOT / 1 EXPERIMENTS")).toBeVisible();
   expect(errors).toEqual([]);

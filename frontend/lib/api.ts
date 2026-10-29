@@ -1,4 +1,8 @@
+import { useLab } from "./store";
+import { visualFixture } from "./visual-fixtures";
 export async function api<T>(path: string, body?: unknown): Promise<T> {
+  if (path === "ai" && useLab.getState().visualPreview)
+    return visualFixture(body) as T;
   const token =
     typeof window === "undefined"
       ? ""

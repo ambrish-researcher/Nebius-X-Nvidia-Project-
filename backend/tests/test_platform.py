@@ -241,3 +241,70 @@ def test_geometry_and_joint_consistency(mutation):
         d["joints"][0]["axis"] = (float("inf"), 0, 0)
     with pytest.raises(ValidationError):
         RobotSpecification.model_validate(d)
+
+
+def test_visual_preview_blocks_paid_inference_before_transport(client, monkeypatch):
+    monkeypatch.setenv("ARISE_VISUAL_DEV", "1")
+    monkeypatch.setenv("NEBIUS_API_KEY", "fixture-key-not-a-real-key")
+    before = client.get("/api/usage").json()
+    assert client.get("/api/health").json()["visual_preview"] is True
+    response = client.post("/api/generate", json={"prompt": "Create a robot"})
+    assert (
+        response.status_code == 503
+        and "blocks paid inference" in response.json()["detail"]
+    )
+    assert client.get("/api/usage").json() == before
+
+
+def test_supported_controller_changes_produce_real_different_motion():
+    task = RobotTask(description="Drive forward")
+    robot = reference_robot()
+    stopped = simulate(
+        SimulationRequest(robot=robot, task=task, duration_s=2, wheel_speed_rad_s=0)
+    )
+    moving = simulate(
+        SimulationRequest(robot=robot, task=task, duration_s=2, wheel_speed_rad_s=4)
+    )
+    assert stopped["metrics"]["displacement_m"] < 0.01
+    assert moving["metrics"]["displacement_m"] > 0.5
+    assert moving["parameters"]["wheel_speed_rad_s"] == 4
+    assert moving["parameters"]["design_mass_kg"] == pytest.approx(
+        sum(c.mass_kg for c in robot.components)
+    )
+
+
+@pytest.mark.parametrize("speed", [-1, 9, float("nan")])
+def test_controller_setpoints_are_bounded(speed):
+    with pytest.raises(ValidationError):
+        SimulationRequest(
+            robot=reference_robot(),
+            task=RobotTask(description="Drive"),
+            wheel_speed_rad_s=speed,
+        )
+
+
+def test_project_schema_keeps_revision_and_controller_state():
+    from backend.app.models import RobotProject
+
+    robot = reference_robot()
+    project = RobotProject(
+        id=robot.id,
+        robot=robot,
+        task=RobotTask(description="Drive"),
+        hardware_id="cpu",
+        controller_settings={"wheel_speed_rad_s": 2},
+        inspected_components=["chassis"],
+        design_changes=[
+            dict(
+                id="change",
+                component_id="chassis",
+                before_kg=4,
+                after_kg=5,
+                at="2026-10-29T00:00:00Z",
+            )
+        ],
+    )
+    restored = RobotProject.model_validate_json(project.model_dump_json())
+    assert restored.controller_settings.wheel_speed_rad_s == 2
+    assert restored.design_changes[0].after_kg == 5
+    assert restored.inspected_components == ["chassis"]
