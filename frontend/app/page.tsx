@@ -461,9 +461,8 @@ export default function Home() {
                   id="robot-prompt"
                   rows={1}
                   placeholder="A rover that sees. An arm that sorts. Something entirely new…"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onFocus={() => useCinema.getState().set({ paused: true })}
+                  defaultValue={prompt}
+                  onInput={(e) => setPrompt(e.currentTarget.value)}
                   onPointerDown={(e) => e.stopPropagation()}
                   maxLength={6000}
                   onKeyDown={(e) => {
@@ -823,8 +822,8 @@ export default function Home() {
                 id="new-prompt"
                 data-autofocus
                 maxLength={6000}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                defaultValue={prompt}
+                onInput={(e) => setPrompt(e.currentTarget.value)}
                 onKeyDown={(e) => {
                   if (e.key !== "Tab" && e.key !== "Escape")
                     e.stopPropagation();
