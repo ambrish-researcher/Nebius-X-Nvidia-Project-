@@ -152,6 +152,21 @@ def simulate(req: SimulationRequest):
         mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, j.component_id)
         for j in req.robot.joints
     ]
+    def record_frame():
+        # Positions use the frontend's Y-up convention. Quaternions remain
+        # MuJoCo WXYZ/Z-up and are explicitly converted by the renderer.
+        return dict(
+            t=round(float(data.time), 4),
+            position=[float(data.qpos[0]), float(data.qpos[2]), float(data.qpos[1])],
+            quaternion=data.qpos[3:7].tolist(),
+            joints=data.qpos[qpos_addresses].tolist(),
+            velocity=data.qvel[:3].tolist(),
+            controller_output=data.actuator_force[actuator_addresses].tolist(),
+            contacts=int(data.ncon),
+        )
+
+    mujoco.mj_forward(model, data)
+    frames.append(record_frame())
     for i in range(steps):
         data.ctrl[:] = np.minimum(
             model.actuator_ctrlrange[:, 1],
@@ -163,28 +178,9 @@ def simulate(req: SimulationRequest):
         contacts = max(contacts, data.ncon)
         tilt = 2 * math.acos(min(1.0, abs(float(data.qpos[3]))))
         max_tilt = max(max_tilt, tilt)
-        if i % 20 == 0 or i == steps - 1:
+        if (i + 1) % 20 == 0 or i == steps - 1:
             # Frames carry actual measured joint states and actuator outputs.
-            frames.append(
-                dict(
-                    t=round(float(data.time), 4),
-                    position=[
-                        float(data.qpos[0]),
-                        float(data.qpos[2]),
-                        float(data.qpos[1]),
-                    ],
-                    quaternion=[
-                        float(data.qpos[3]),
-                        float(data.qpos[4]),
-                        float(data.qpos[5]),
-                        float(data.qpos[6]),
-                    ],
-                    joints=data.qpos[qpos_addresses].tolist(),
-                    velocity=data.qvel[:3].tolist(),
-                    controller_output=data.actuator_force[actuator_addresses].tolist(),
-                    contacts=int(data.ncon),
-                )
-            )
+            frames.append(record_frame())
     displacement = float(np.linalg.norm(data.qpos[:2]))
     wall = time.perf_counter() - started
     return dict(
@@ -195,6 +191,12 @@ def simulate(req: SimulationRequest):
         frames=frames,
         hardware_id=req.hardware_id,
         hardware_benchmarked=False,
+        execution=dict(
+            location="backend", processor="cpu", gpu_accelerated=False,
+            timestep_s=float(model.opt.timestep), status="succeeded",
+            position_coordinates="Y-up XYZ meters",
+            quaternion_coordinates="MuJoCo Z-up WXYZ; convert basis for display",
+        ),
         parameters=dict(
             wheel_speed_rad_s=req.wheel_speed_rad_s,
             design_mass_kg=sum(c.mass_kg for c in req.robot.components),

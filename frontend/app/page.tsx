@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -29,7 +30,13 @@ import {
   ArrowDown,
   AlertCircle,
   Download,
+  Move3D,
+  Navigation,
 } from "lucide-react";
+import {
+  AssemblyHierarchy,
+  SimulationDock,
+} from "../components/engineering-studio";
 import { CinematicOverlay } from "../components/cinematic-ui";
 import { useCinema } from "../lib/cinema";
 import { useMotionPreference } from "../lib/use-motion-preference";
@@ -91,7 +98,9 @@ export default function Home() {
     driveSpeed,
     changes,
     inspected,
-  } = useLab();
+  } = useLab(
+    useShallow(({ playhead, playing, renderedRobotId, ...rest }) => rest),
+  );
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
@@ -605,18 +614,11 @@ export default function Home() {
               components <i /> Y-up · SI units
             </span>
           </div>
+          <AssemblyHierarchy />
           <div className="lab-panel" ref={panelRef}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={section}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-              >
-                <PanelContent onError={error} />
-              </motion.div>
-            </AnimatePresence>
+            <div key={section} className="studio-panel-content">
+              <PanelContent onError={error} />
+            </div>
           </div>
           <div className="viewport-hint">
             <span className="green-dot" /> LIVE 3D WORKSPACE{" "}
@@ -667,20 +669,33 @@ export default function Home() {
             >
               <RotateCcw size={17} />
             </button>
-            <label className="sr-only" htmlFor="playback-speed">
-              Playback speed
-            </label>
-            <select
-              id="playback-speed"
-              value={speed}
-              onChange={(e) => set({ speed: +e.target.value })}
+            <button
+              aria-label="Move selected component in inspection view"
+              title="Inspection translation · visual only"
+              disabled={!selected || section !== "inspect"}
+              aria-pressed={useLab.getState().transformMode === "translate"}
+              onClick={() =>
+                set({
+                  transformMode:
+                    useLab.getState().transformMode === "translate"
+                      ? "off"
+                      : "translate",
+                  exploded: false,
+                })
+              }
             >
-              {[0.5, 1, 2].map((n) => (
-                <option key={n} value={n}>
-                  {n}×
-                </option>
-              ))}
-            </select>
+              <Move3D size={17} />
+            </button>
+            <button
+              aria-label="Follow robot"
+              title="Follow recorded robot motion"
+              aria-pressed={useLab.getState().followRobot}
+              onClick={() =>
+                set({ followRobot: !useLab.getState().followRobot })
+              }
+            >
+              <Navigation size={16} />
+            </button>
             <span className="toolbar-separator" />
             <label className="sr-only" htmlFor="camera-view">
               Camera preset
@@ -705,13 +720,7 @@ export default function Home() {
               <Maximize2 size={16} />
             </button>
           </div>
-          <div className="lab-bottom">
-            <span>
-              <span className="tiny-square" /> ONE SPECIFICATION. EVERY
-              EXPERIMENT.
-            </span>
-            <span>A CONCEPT IS A BEGINNING, NOT A CERTIFICATION.</span>
-          </div>
+          <SimulationDock health={health} onError={error} />
         </>
       )}
       {loading && (

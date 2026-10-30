@@ -235,7 +235,7 @@ export function CinematicWorld() {
         ? ([-0.85, 1.55, -0.25] as [number, number, number])
         : spherePose(current.phase, current.time);
       orb.current.position.set(...p);
-      orb.current.visible = current.phase !== "reveal";
+      orb.current.visible = !lab.entered && current.phase !== "reveal";
       orb.current.scale.setScalar(
         lab.entered
           ? 0.3

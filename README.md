@@ -4,7 +4,7 @@
 
 An immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.
 
-The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [core workflow and live verification](docs/core-workflow.md), and the earlier [cinematic milestone](docs/arise-milestone.md).
+The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [engineering studio milestone](docs/studio-milestone.md), [core workflow and live verification](docs/core-workflow.md), and earlier [cinematic milestone](docs/arise-milestone.md).
 
 ## What works locally
 

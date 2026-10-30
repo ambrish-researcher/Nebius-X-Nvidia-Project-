@@ -27,7 +27,13 @@ Robot/project IDs connect task assumptions, selected hardware, experiments, quiz
 
 The supported adapter accepts a box chassis called `chassis` and exactly four cylindrical, lateral-hinge wheel actuators. It maps the generated component coordinates into MuJoCo's Z-up frame. XML is constructed with escaped ElementTree attributes, not arbitrary model-generated XML. Other components contribute fixed collision geometry and mass. Wheel velocity setpoints ramp at 4 rad/s² to the requested bounded 0–8 rad/s target (default 4), with the existing force limits. Runs record actual design mass and the setpoint used. The improvement workflow retains predictions and previous experiment results. Flat-plane contacts, gravity, and controller forces are actual solver output.
 
-The adapter validates support structurally; an AI-provided capability label alone is insufficient. Unsupported designs receive HTTP 422. The drive experiment does not run navigation, interpret images, or satisfy an arbitrary natural-language mission. Contacts include normal wheel-floor contact. `task_completed` is null and `hardware_benchmarked` is false. Browser playback uses actual position, quaternion, joint, force, and contact samples.
+The adapter validates support structurally; an AI-provided capability label alone is insufficient. Unsupported designs receive HTTP 422. The drive experiment does not run navigation, interpret images, or satisfy an arbitrary natural-language mission. Contacts include normal wheel-floor contact. `task_completed` is null and `hardware_benchmarked` is false. Browser playback uses actual position, quaternion, joint, force, and contact samples, including time zero and the final state. Positions are returned in Y-up XYZ; quaternions remain MuJoCo Z-up WXYZ and are converted for rendering. Responses explicitly report backend CPU execution, integration timestep, and successful solver completion.
+
+`PlaybackClock` runs outside the WebGL tree and maps elapsed wall time to recorded timestamps. Slow rendering can skip displayed samples without stretching the experiment or inventing poses. Playback, scrubbing, Reset, and Replay never dispatch another solve. Hidden tabs pause playback. The shared simulation action admits only one solve at a time, validates returned states, preserves prior evidence after failure, and rejects a result if its design changed during execution. The studio distinguishes synchronous backend solving from subsequent playback of the recorded states.
+
+The studio uses a dedicated center viewport, a mounting hierarchy, a properties/learning panel, and a persistent simulation dock. Part and camera state subscriptions exclude per-sample React updates; Three.js reads the current pose directly during rendering. Inspection translations use a separate bounded visual-offset map and are not design edits. Starting simulation clears them; they never alter the validated specification, collision model, or saved engineering geometry. Backend-validated geometry editing is not implemented by these tools.
+
+Rendering diagnostics read the active WebGL context's renderer/version and optional debug-renderer extension. Software renderer strings are identified explicitly; hidden strings remain unknown. Continuous FPS samples actual frame intervals; on-demand reduced-motion mode reports that continuous FPS is not sampled. These measurements are independent of CPU solver timing and Nebius cloud model inference. The application has no local RTX, CUDA physics, or Isaac execution adapter.
 
 ## Inference and cost
 
@@ -43,7 +49,7 @@ The ledger adds `response_model`, `completed_at`, and `validated_at` without rep
 
 - MuJoCo: actually integrated and tested.
 - R3F / Three.js / Zustand / Next.js / FastAPI: actually integrated and locally tested.
-- NVIDIA Nemotron through Nebius: authenticated catalog and a real browser-driven three-component robot generation/inspection verified. Other AI workflows and larger designs still require live regression checks.
+- NVIDIA Nemotron through Nebius: authenticated catalog and five distinct real generated designs verified in the core workflow milestone; browser regression uses explicitly recorded real-response replays without new paid inference. Other AI workflows and larger designs still require live regression checks.
 - Supabase: implemented auth/storage adapter and SQL migration; live service unverified.
 - Vera Rubin / Grace / Jetson software / CUDA / TensorRT / Isaac ROS / Cosmos / GR00T: educational context, not execution integrations.
 - Isaac Sim / Isaac Lab and GPU benchmarking: planned, not installed or executed.

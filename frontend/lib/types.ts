@@ -104,6 +104,15 @@ export interface Frame {
   contacts: number;
 }
 export interface SimulationRun {
+  execution?: {
+    location: "backend";
+    processor: "cpu";
+    gpu_accelerated: false;
+    timestep_s: number;
+    position_coordinates: string;
+    quaternion_coordinates: string;
+    status: "succeeded";
+  };
   prediction?: string;
   parameters?: { wheel_speed_rad_s: number; design_mass_kg: number };
   id: string;

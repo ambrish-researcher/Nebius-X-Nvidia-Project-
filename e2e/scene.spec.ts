@@ -45,7 +45,7 @@ test("3D raycasting selects a real component and camera controls change the rend
   const bounds = (await canvas.boundingBox())!;
   // These viewport coordinates intersect the reference rover's central body.
   await page.mouse.click(
-    bounds.x + bounds.width * 0.32,
+    bounds.x + bounds.width * 0.5,
     bounds.y + bounds.height * 0.55,
   );
   await expect(page.locator(".inspection h3")).toBeVisible();
@@ -53,11 +53,36 @@ test("3D raycasting selects a real component and camera controls change the rend
     page.getByRole("button", { name: "Inspect", exact: true }),
   ).toHaveAttribute("aria-current", "step");
   const first = await canvas.screenshot();
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.5,
+    bounds.y + bounds.height * 0.5,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.65,
+    bounds.y + bounds.height * 0.58,
+    { steps: 12 },
+  );
+  await page.mouse.up();
+  const orbited = await canvas.screenshot();
+  expect(first.equals(orbited)).toBe(false);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.55,
+    bounds.y + bounds.height * 0.55,
+    { steps: 8 },
+  );
+  await page.mouse.up({ button: "right" });
+  const panned = await canvas.screenshot();
+  expect(orbited.equals(panned)).toBe(false);
+  await page.mouse.wheel(0, 200);
+  const zoomed = await canvas.screenshot();
+  expect(panned.equals(zoomed)).toBe(false);
   await page.getByLabel("Camera preset").selectOption("top");
   await expect(page.getByLabel("Camera preset")).toHaveValue("top");
   // Actual screenshots verify that the WebGL view changes, beyond control state.
   const top = await canvas.screenshot();
-  expect(first.equals(top)).toBe(false);
+  expect(zoomed.equals(top)).toBe(false);
   await page
     .getByRole("button", { name: "Isolate selected component" })
     .click();

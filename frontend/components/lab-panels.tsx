@@ -5,8 +5,6 @@ import {
   Check,
   ChevronRight,
   Play,
-  Pause,
-  RotateCcw,
   ArrowRight,
   Plus,
   BookOpen,
@@ -22,10 +20,11 @@ import { api, formatError } from "../lib/api";
 import { HardwareAtlas } from "./hardware-atlas";
 import { ImprovementPanel } from "./improvement-panel";
 import { DesignEvidence, useAssessment } from "./design-evidence";
+import { SelectedProperties } from "./engineering-studio";
+import { useSimulation, executeExperiment } from "../lib/simulation";
 import { Button } from "./ui/button";
 import type {
   Recommendation,
-  SimulationRun,
   Task,
   Question,
   Card,
@@ -70,11 +69,7 @@ function Design() {
   return (
     <>
       <Eyebrow>01 / ENGINEERING BRIEF</Eyebrow>
-      <h2>
-        Anatomy of
-        <br />
-        <em>an idea.</em>
-      </h2>
+      <h2>Design overview</h2>
       <p className="panel-intro">{robot.purpose}</p>
       <div className="provenance">
         {robot.provenance === "reference"
@@ -140,15 +135,12 @@ function Inspect() {
   return (
     <>
       <Eyebrow>02 / COMPONENT EXPLORER</Eyebrow>
-      <h2>
-        Every part.
-        <br />
-        <em>A purpose.</em>
-      </h2>
+      <h2>Component inspector</h2>
       <p className="panel-intro">
         Select a component in the lab. Follow the connections that make the
         machine.
       </p>
+      <SelectedProperties />
       <div className="component-grid">
         {robot.components.map((c) => (
           <button
@@ -564,21 +556,12 @@ function Compute({ onError }: Props) {
   );
 }
 function Simulate({ onError }: Props) {
-  const { assessment } = useAssessment();
-  const {
-    robot,
-    task,
-    hardwareId,
-    runs,
-    playhead,
-    playing,
-    speed,
-    driveSpeed,
-    visualPreview,
-    set,
-  } = useLab();
-  const [busy, setBusy] = useState(false);
-  const [duration, setDuration] = useState(6);
+  const { assessment, error: assessmentError } = useAssessment();
+  const { robot, task, hardwareId, runs, playhead, visualPreview, set } =
+    useLab();
+  const busy = useSimulation((s) => s.status === "running");
+  const duration = useSimulation((s) => s.duration);
+  const setDuration = useSimulation((s) => s.setDuration);
   const [analysis, setAnalysis] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const analyze = async () => {
@@ -611,36 +594,17 @@ function Simulate({ onError }: Props) {
   const run = runs.at(-1);
   const frame = run?.frames[playhead];
   const execute = async () => {
-    setBusy(true);
-    set({ playing: false });
     try {
-      const result = await api<SimulationRun>("simulate", {
-        robot,
-        task,
-        hardware_id: hardwareId,
-        duration_s: duration,
-        wheel_speed_rad_s: driveSpeed,
-      });
-      set({
-        runs: [...runs.slice(-19), result],
-        playhead: 0,
-        playing: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-      });
+      await executeExperiment();
     } catch (e) {
       onError(formatError(e));
-    } finally {
-      setBusy(false);
     }
   };
   const supported = !!assessment?.physics_valid;
   return (
     <>
       <Eyebrow>05 / PHYSICS LABORATORY</Eyebrow>
-      <h2>
-        Less assumption.
-        <br />
-        <em>More evidence.</em>
-      </h2>
+      <h2>Physics experiment</h2>
       <p className="panel-intro">
         A real MuJoCo experiment, rendered from recorded physics states.
       </p>
@@ -653,10 +617,19 @@ function Simulate({ onError }: Props) {
         Four wheel velocity controllers · 2 ms integration timestep · gravity
         and contact friction. Geometry and masses come from this robot.
       </p>
-      {!supported && (
+      {!assessment && !assessmentError && (
+        <p className="fine">Compiling the design to check physics support…</p>
+      )}
+      {assessmentError && (
+        <div className="warning">
+          Physics support check failed: {assessmentError} Start is disabled
+          until the backend can validate this model.
+        </div>
+      )}
+      {assessment && !supported && (
         <div className="warning">
           This robot is conceptual for simulation. The current adapter supports
-          four-wheel rovers only.
+          four-wheel rovers only. {assessment.limitations.join(" ")}
         </div>
       )}
       <label className="field-label" htmlFor="duration">
@@ -701,36 +674,10 @@ function Simulate({ onError }: Props) {
               <span>SIMULATED TIME</span>
             </div>
           </div>
-          <div className="playback">
-            <button
-              aria-label={playing ? "Pause playback" : "Play playback"}
-              onClick={() =>
-                set({
-                  playing: !playing,
-                  ...(playhead >= run.frames.length - 1 ? { playhead: 0 } : {}),
-                })
-              }
-            >
-              {playing ? <Pause size={16} /> : <Play size={16} />}
-            </button>
-            <input
-              aria-label="Simulation timeline"
-              type="range"
-              min={0}
-              max={run.frames.length - 1}
-              value={playhead}
-              onChange={(e) =>
-                set({ playhead: +e.target.value, playing: false })
-              }
-            />
-            <span>{frame?.t.toFixed(2)} s</span>
-            <button
-              aria-label="Reset playback"
-              onClick={() => set({ playhead: 0, playing: false })}
-            >
-              <RotateCcw size={14} />
-            </button>
-          </div>
+          <p className="fine">
+            Use the persistent timeline below the viewport to play, pause,
+            reset, and replay these recorded solver states.
+          </p>
           <div className="spec-rows">
             <div>
               <span>Integration steps</span>
@@ -1113,6 +1060,9 @@ function History({ onError }: Props) {
   };
   const load = (p: Project) => {
     set({
+      renderedRobotId: null,
+      inspectionOffsets: {},
+      transformMode: "off",
       robot: p.robot,
       task: p.task,
       hardwareId: p.hardware_id,

@@ -3658,3 +3658,967 @@ small {
   line-height: 1.7;
   margin-top: 12px;
 }
+
+/* Engineering studio: a dedicated viewport, persistent evidence, clear tools. */
+@keyframes studio-panel-in {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.studio-panel-content {
+  animation: studio-panel-in 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-panel-content {
+    animation: none;
+  }
+}
+.arise-world.in-lab {
+  --studio-line: #ffffff12;
+  --studio-muted: #97a3af;
+  --studio-panel: #13171d;
+  --studio-accent: #c2ee96;
+  --studio-left: 244px;
+  --studio-right: 354px;
+  --studio-top: 204px;
+  --studio-bottom: 216px;
+  height: 100dvh;
+  min-height: 780px;
+  overflow: hidden;
+  background: #0b0e12;
+}
+.arise-world.in-lab .topbar {
+  height: 72px;
+  margin: 0 24px;
+  border-bottom: 1px solid var(--studio-line);
+}
+.arise-world.in-lab .brand b {
+  font-size: 8px;
+  color: #8d98a5;
+}
+.arise-world.in-lab .preview-ribbon {
+  display: none;
+}
+.arise-world.in-lab .lab-nav {
+  top: 73px;
+  left: 16px;
+  right: 16px;
+  bottom: auto;
+  width: auto;
+  height: 52px;
+  margin: 0;
+  padding: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  border-bottom: 1px solid var(--studio-line);
+}
+.arise-world.in-lab .lab-nav > button {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 5px;
+  padding: 10px 12px;
+  color: #96a0ae;
+  white-space: nowrap;
+}
+.arise-world.in-lab .lab-nav > button > span {
+  font-size: 12px;
+}
+.arise-world.in-lab .lab-nav > button small {
+  display: none;
+}
+.arise-world.in-lab .lab-nav > button.active {
+  background: #c2ee9610;
+  color: var(--studio-accent);
+}
+.arise-world.in-lab .lab-nav .new-project {
+  margin: 0 0 0 auto;
+  color: #e3e9f1;
+}
+.arise-world.in-lab .lab-heading {
+  top: 140px;
+  left: 24px;
+  right: 24px;
+  max-width: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 20px;
+}
+.arise-world.in-lab .lab-heading .eyebrow {
+  grid-column: 1;
+  font-size: 9px;
+  color: #84929f;
+  letter-spacing: 1.3px;
+}
+.arise-world.in-lab .lab-heading h1 {
+  grid-column: 1;
+  font-size: 23px;
+  line-height: 1.2;
+  letter-spacing: -0.6px;
+  margin: 4px 0;
+}
+.arise-world.in-lab .lab-model-meta {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  font-size: 10px;
+  color: #98a8b5;
+}
+.arise-world.in-lab .scene-container {
+  position: absolute;
+  top: var(--studio-top);
+  left: calc(var(--studio-left) + 28px);
+  width: calc(100% - var(--studio-left) - var(--studio-right) - 56px);
+  height: calc(100% - var(--studio-top) - var(--studio-bottom));
+  margin: 0;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  overflow: hidden;
+  background: #11161c;
+  z-index: 1;
+}
+.arise-world.in-lab .scene-vignette {
+  background: linear-gradient(
+    180deg,
+    #0b10172b,
+    transparent 15%,
+    transparent 80%,
+    #0b101766
+  );
+}
+.arise-world.in-lab .scene-coordinate.bottom-right {
+  bottom: 64px;
+  right: 16px;
+  font-size: 8px;
+  color: #8795a5;
+}
+.arise-world.in-lab .scene-coordinate.bottom-right span {
+  font-size: 8px;
+}
+.arise-world.in-lab .viewport-hint {
+  top: calc(var(--studio-top) + 16px);
+  bottom: auto;
+  left: calc(var(--studio-left) + 44px);
+  color: #c1cfda;
+  font-size: 9px;
+  gap: 7px;
+}
+.arise-world.in-lab .viewport-hint > span:last-child {
+  font-size: 8px;
+  color: #93a3b1;
+  letter-spacing: 0.2px;
+  margin-left: 4px;
+}
+.arise-world.in-lab .viewport-toolbar {
+  position: absolute;
+  left: calc(var(--studio-left) + 42px);
+  right: auto;
+  bottom: calc(var(--studio-bottom) + 12px);
+  top: auto;
+  margin: 0;
+  padding: 5px;
+  gap: 2px;
+  border-radius: 7px;
+  background: #131a22ed;
+  border: 1px solid #8ea6b43b;
+  box-shadow: 0 8px 24px #0005;
+  max-width: calc(100% - var(--studio-left) - var(--studio-right) - 82px);
+  flex-wrap: wrap;
+}
+.arise-world.in-lab .viewport-toolbar button {
+  height: 30px;
+  min-width: 27px;
+  padding: 5px 6px;
+  color: #b6c4ce;
+}
+.arise-world.in-lab .viewport-toolbar button span {
+  font-size: 11px;
+}
+.arise-world.in-lab .viewport-toolbar button[aria-pressed="true"] {
+  color: var(--studio-accent);
+  background: #c2ee9615;
+  border-radius: 4px;
+}
+.arise-world.in-lab .viewport-toolbar select {
+  max-width: 114px;
+  padding: 6px 3px;
+  color: #bdc9d5;
+  font-size: 10px;
+}
+.arise-world.in-lab .toolbar-separator {
+  margin: 0 3px;
+  background: #8199aa25;
+}
+.arise-world.in-lab .lab-panel {
+  position: absolute;
+  top: var(--studio-top);
+  bottom: var(--studio-bottom);
+  right: 16px;
+  width: var(--studio-right);
+  padding: 22px 20px 28px;
+  margin: 0;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: var(--studio-panel);
+  mask-image: none;
+  scrollbar-color: #3c4957 transparent;
+}
+.arise-world.in-lab .lab-panel h2 {
+  font-size: 29px;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  margin: 14px 0 18px;
+}
+.arise-world.in-lab .lab-panel h2 br {
+  display: none;
+}
+.arise-world.in-lab .lab-panel h2 em {
+  color: #cad3df;
+  font-style: normal;
+}
+.arise-world.in-lab .panel-intro {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #acb8c7;
+}
+.arise-world.in-lab .lab-panel .eyebrow {
+  color: #8ea1b2;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.arise-world.in-lab .lab-panel .button {
+  min-height: 42px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 12px;
+}
+.arise-world.in-lab .lab-panel .fine {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #acb7c4;
+}
+.arise-world.in-lab .provenance {
+  font-size: 9px;
+  color: #a9c8a0;
+  padding: 12px 0;
+}
+.arise-world.in-lab .design-evidence {
+  padding: 16px 0;
+  margin: 12px 0 22px;
+  border-color: var(--studio-line);
+}
+.arise-world.in-lab .design-evidence h3 {
+  font-size: 16px;
+}
+.arise-world.in-lab .design-evidence h4 {
+  font-size: 13px;
+  margin: 20px 0 8px;
+}
+.arise-world.in-lab .design-evidence li,
+.arise-world.in-lab .design-evidence p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #b4c0ce;
+}
+.arise-world.in-lab .component-choice {
+  font-size: 12px;
+  padding: 9px 5px;
+}
+.arise-world.in-lab .inspection h3 {
+  font-size: 23px;
+}
+.arise-world.in-lab .inspection p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.arise-world.in-lab .stat-grid strong {
+  font-size: 32px;
+}
+.arise-world.in-lab .spec-rows > div {
+  gap: 14px;
+}
+.arise-world.in-lab .spec-rows span {
+  min-width: 0;
+}
+.arise-world.in-lab .spec-rows b {
+  overflow-wrap: anywhere;
+}
+.studio-assembly {
+  position: absolute;
+  top: var(--studio-top);
+  left: 16px;
+  bottom: var(--studio-bottom);
+  width: var(--studio-left);
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  background: var(--studio-panel);
+  z-index: 4;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.studio-assembly summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 18px 15px;
+  cursor: pointer;
+  color: #dce6ef;
+  list-style: none;
+  border-bottom: 1px solid var(--studio-line);
+}
+.studio-assembly summary::-webkit-details-marker {
+  display: none;
+}
+.studio-assembly summary > span {
+  font-size: 14px;
+  font-weight: 500;
+}
+.studio-assembly summary small {
+  font: 10px var(--mono);
+  color: #8798aa;
+  margin-left: auto;
+}
+.assembly-body {
+  padding: 12px 8px 20px;
+}
+.assembly-body > input {
+  font-size: 12px;
+  padding: 10px;
+  border: 1px solid #ffffff12;
+  background: #0c1117;
+  border-radius: 5px;
+  width: 100%;
+}
+.hierarchy-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 12px 1px;
+}
+.hierarchy-filters button {
+  font-size: 10px;
+  color: #8f9cab;
+  padding: 6px;
+  border-radius: 4px;
+}
+.hierarchy-filters button[aria-pressed="true"] {
+  color: #c8e6ad;
+  background: #c8e6ad10;
+}
+.assembly-tree {
+  padding: 0;
+  list-style: none;
+}
+.assembly-tree button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 9px;
+  padding: 11px 8px;
+  border-radius: 5px;
+  border-left: 2px solid transparent;
+  color: #a7b6c5;
+}
+.assembly-tree button > span {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.assembly-tree button small {
+  display: block;
+  font: 9px var(--mono);
+  text-transform: uppercase;
+  color: #748493;
+  margin-top: 3px;
+}
+.assembly-tree button svg {
+  flex-shrink: 0;
+  color: #778b9e;
+}
+.assembly-tree button:hover {
+  background: #ffffff06;
+}
+.assembly-tree button[aria-pressed="true"] {
+  background: #c2ee960b;
+  color: #d2ecb8;
+  border-left-color: #c2ee96;
+}
+.assembly-summary {
+  display: flex;
+  gap: 10px;
+  margin: 18px 6px;
+  font: 9px var(--mono);
+  color: #8396a6;
+}
+.studio-muted {
+  color: #94a2b2;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 6px 0;
+}
+.selected-properties {
+  border: 1px solid #ffffff13;
+  border-radius: 5px;
+  background: #0e1319;
+  padding: 13px;
+  margin: 14px 0 20px;
+}
+.studio-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 10px var(--mono);
+  color: #c5d1dc;
+  overflow-wrap: anywhere;
+}
+.studio-section-title > span {
+  margin-left: auto;
+  font-size: 9px;
+  color: #7c90a3;
+}
+.selected-properties dl,
+.runtime-popover dl {
+  margin: 12px 0;
+}
+.selected-properties dl > div,
+.runtime-popover dl > div {
+  padding: 9px 0;
+  border-bottom: 1px solid #ffffff09;
+}
+.selected-properties dt,
+.runtime-popover dt {
+  font-size: 10px;
+  color: #8295a7;
+  margin-bottom: 5px;
+}
+.selected-properties dd,
+.runtime-popover dd {
+  font-size: 12px;
+  color: #c5d2de;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.studio-text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #c2cebd;
+  padding: 6px 0;
+}
+.inspection-transform-note {
+  margin: 12px 0;
+  border-top: 1px solid #98c6e627;
+  padding-top: 8px;
+}
+.inspection-transform-note p {
+  color: #9cb4c9;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.offset-fields {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+.offset-fields label {
+  flex: 1;
+  font: 10px var(--mono);
+  min-width: 0;
+  color: #809aaf;
+}
+.offset-fields input {
+  width: 100%;
+  font-size: 12px;
+  margin-top: 6px;
+  padding: 8px 4px;
+}
+.simulation-dock {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  min-height: 184px;
+  padding: 16px 18px 12px;
+  z-index: 6;
+  background: #13171df7;
+  border: 1px solid var(--studio-line);
+  border-radius: 9px;
+  color: #b8c8d6;
+}
+.dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--studio-line);
+}
+.dock-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.dock-title strong {
+  font: 10px var(--mono);
+  letter-spacing: 1px;
+  color: #c1cdd7;
+  white-space: nowrap;
+}
+.dock-title > span:last-child {
+  font-size: 12px;
+  color: #9aaaaf;
+}
+.dock-render {
+  display: flex;
+  gap: 14px;
+  font: 10px var(--mono);
+  color: #9baeb8;
+}
+.dock-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 60px;
+}
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.dock-actions button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px;
+  font-size: 11px;
+  border-radius: 5px;
+  color: #bccbd4;
+  border: 1px solid #ffffff12;
+}
+.dock-actions .studio-primary {
+  color: #162015;
+  background: #c2ee96;
+  border-color: #c2ee96;
+}
+.dock-actions .studio-primary:disabled {
+  background: #303b30;
+  color: #8a9787;
+  border-color: #ffffff09;
+}
+.dock-actions select {
+  font: 11px var(--mono);
+  width: 65px;
+  padding: 9px 4px;
+  border: 1px solid #ffffff12;
+  background: #151c23;
+}
+.dock-timeline {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 12px;
+  min-width: 180px;
+}
+.dock-timeline input {
+  width: 100%;
+  cursor: pointer;
+}
+.dock-timeline [data-testid="elapsed-simulation"] {
+  white-space: nowrap;
+  font: 11px var(--mono);
+  color: #aec3cf;
+  min-width: 110px;
+  text-align: right;
+}
+.trajectory-mini {
+  width: 150px;
+  max-height: 38px;
+  border-left: 1px solid #ffffff13;
+}
+.dock-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font: 10px var(--mono);
+  line-height: 1.8;
+  color: #8fa5b5;
+}
+.dock-telemetry > span:first-child {
+  color: #c3d6c4;
+}
+.dock-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 9px;
+  margin-top: 9px;
+  border-top: 1px solid var(--studio-line);
+}
+.dock-footer > button {
+  white-space: nowrap;
+}
+.dock-footer > span {
+  color: #8194a6;
+  font-size: 10px;
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dock-note {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 5px 0 0;
+  color: #a5ba95;
+}
+.dock-error {
+  font-size: 12px;
+  color: #f8b0a5;
+  padding-top: 7px;
+  line-height: 1.6;
+}
+.runtime-details {
+  position: relative;
+  margin-left: auto;
+}
+.runtime-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #bacadd;
+  list-style: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.runtime-popover,
+.execution-log {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: 0;
+  width: 430px;
+  max-height: 60vh;
+  overflow: auto;
+  padding: 22px;
+  background: #172029;
+  border: 1px solid #8095a449;
+  border-radius: 8px;
+  box-shadow: 0 18px 60px #0008;
+}
+.runtime-popover h3,
+.execution-log h3 {
+  font-size: 18px;
+  line-height: 1.4;
+  color: #e4edf3;
+  font-weight: 500;
+}
+.runtime-popover p,
+.execution-log p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #8fa4b7;
+}
+.execution-log {
+  right: auto;
+  left: 0;
+  width: min(680px, 100%);
+}
+.execution-log ol {
+  list-style: none;
+  margin-top: 16px;
+  padding: 0;
+}
+.execution-log li {
+  font: 11px / 1.8 var(--mono);
+  color: #b8cad6;
+  padding: 7px 0;
+  border-bottom: 1px solid #ffffff0b;
+}
+.execution-log time {
+  display: inline-block;
+  color: #708a9e;
+  margin-right: 12px;
+}
+.execution-log li.error {
+  color: #f5b2a8;
+}
+.arise-world.in-lab .toast {
+  bottom: 24px;
+}
+.arise-world.in-lab .part-label {
+  background: #17212beb;
+  border-color: #7c96ae;
+  color: #dce8ed;
+}
+@media (max-width: 1180px) and (min-width: 901px) {
+  .arise-world.in-lab {
+    --studio-left: 196px;
+    --studio-right: 310px;
+  }
+  .arise-world.in-lab .lab-panel {
+    padding: 18px 16px 26px;
+  }
+  .arise-world.in-lab .viewport-hint > span:last-child {
+    display: none;
+  }
+  .arise-world.in-lab .viewport-toolbar button span {
+    display: none;
+  }
+  .arise-world.in-lab .lab-nav > button {
+    padding: 10px 9px;
+  }
+  .trajectory-mini {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .arise-world.in-lab {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+  }
+  .arise-world.in-lab .topbar {
+    order: 0;
+    margin: 0 5%;
+    height: 70px;
+  }
+  .arise-world.in-lab .lab-nav {
+    order: 1;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    padding: 8px 4%;
+    height: auto;
+    min-height: 56px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .arise-world.in-lab .lab-nav > button {
+    flex-shrink: 0;
+    padding: 10px;
+    flex-direction: row;
+    gap: 7px;
+  }
+  .arise-world.in-lab .lab-nav > button > svg {
+    display: block;
+  }
+  .arise-world.in-lab .lab-nav > button > span {
+    display: block;
+  }
+  .arise-world.in-lab .lab-nav .new-project {
+    display: flex;
+    margin-left: 0;
+  }
+  .arise-world.in-lab .lab-heading {
+    order: 2;
+    position: relative;
+    inset: auto;
+    width: 90%;
+    max-width: none;
+    margin: 22px 5% 18px;
+    display: block;
+  }
+  .arise-world.in-lab .lab-heading h1 {
+    font-size: 25px;
+    line-height: 1.2;
+    margin: 10px 0;
+  }
+  .arise-world.in-lab .lab-heading .eyebrow {
+    display: block;
+  }
+  .arise-world.in-lab .lab-model-meta {
+    font-size: 9px;
+    flex-wrap: wrap;
+    line-height: 1.5;
+  }
+  .arise-world.in-lab .scene-container {
+    order: 3;
+    position: relative;
+    inset: auto;
+    width: 94%;
+    height: 400px;
+    margin: 0 3%;
+    flex-shrink: 0;
+    border-radius: 8px;
+  }
+  .arise-world.in-lab .scene-coordinate.bottom-right {
+    bottom: 14px;
+    right: 14px;
+  }
+  .arise-world.in-lab .viewport-hint {
+    order: 4;
+    position: relative;
+    inset: auto;
+    margin: 14px 5% 0;
+    font-size: 9px;
+  }
+  .arise-world.in-lab .viewport-hint > span:last-child {
+    display: none;
+  }
+  .arise-world.in-lab .viewport-toolbar {
+    order: 5;
+    position: relative;
+    inset: auto;
+    margin: 12px 3% 0;
+    max-width: 94%;
+    width: auto;
+    align-self: flex-start;
+    padding: 7px;
+    flex-shrink: 0;
+  }
+  .arise-world.in-lab .viewport-toolbar button {
+    width: auto;
+    height: 32px;
+    padding: 6px;
+  }
+  .arise-world.in-lab .viewport-toolbar button span {
+    display: none;
+  }
+  .arise-world.in-lab .viewport-toolbar select {
+    font-size: 10px;
+  }
+  .simulation-dock {
+    order: 6;
+    position: relative;
+    inset: auto;
+    width: 94%;
+    margin: 16px 3% 0;
+    padding: 15px;
+    min-height: 0;
+  }
+  .dock-header {
+    align-items: flex-start;
+  }
+  .dock-title {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dock-title > span:last-child {
+    flex-basis: 100%;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .dock-render {
+    flex-direction: column;
+    font-size: 9px;
+    gap: 5px;
+    min-width: 100px;
+  }
+  .dock-main {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 13px 0 9px;
+  }
+  .dock-actions {
+    width: 100%;
+    gap: 5px;
+  }
+  .dock-actions button {
+    padding: 9px;
+    min-height: 38px;
+  }
+  .dock-actions .studio-primary {
+    margin-right: auto;
+  }
+  .dock-timeline {
+    width: 100%;
+    min-width: 0;
+    flex: auto;
+  }
+  .trajectory-mini {
+    width: 100%;
+    height: 32px;
+    border: 0;
+    border-top: 1px solid #ffffff0a;
+  }
+  .dock-telemetry {
+    font-size: 10px;
+    gap: 6px 12px;
+    padding-top: 8px;
+  }
+  .dock-telemetry > span {
+    overflow-wrap: anywhere;
+  }
+  .dock-footer {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .dock-footer > span {
+    display: none;
+  }
+  .runtime-popover {
+    position: fixed;
+    bottom: 20px;
+    left: 3%;
+    right: 3%;
+    width: 94%;
+    max-height: 70dvh;
+    z-index: 20;
+    padding: 18px;
+  }
+  .runtime-details[open] summary {
+    position: relative;
+    z-index: 21;
+    background: #24303d;
+    padding: 9px;
+    border-radius: 4px;
+  }
+  .execution-log {
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    max-height: 50vh;
+  }
+  .studio-assembly {
+    order: 7;
+    position: relative;
+    inset: auto;
+    width: 94%;
+    margin: 16px 3% 0;
+    max-height: 370px;
+  }
+  .assembly-body {
+    padding: 12px 14px 20px;
+  }
+  .assembly-tree button {
+    min-height: 45px;
+  }
+  .arise-world.in-lab .lab-panel {
+    order: 8;
+    position: relative;
+    inset: auto;
+    width: 94%;
+    margin: 16px 3% 24px;
+    padding: 24px 20px;
+    overflow: visible;
+    max-height: none;
+  }
+  .arise-world.in-lab .lab-panel h2 {
+    font-size: 32px;
+  }
+  .arise-world.in-lab .lab-panel .button {
+    font-size: 13px;
+  }
+  .arise-world.in-lab .toast {
+    bottom: 18px;
+  }
+}

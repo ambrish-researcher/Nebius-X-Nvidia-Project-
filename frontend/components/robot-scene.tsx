@@ -6,10 +6,11 @@ import {
   Lightformer,
   OrbitControls,
   RoundedBox,
-  Grid,
   Html,
   Line,
+  TransformControls,
 } from "@react-three/drei";
+import { useShallow } from "zustand/react/shallow";
 import {
   Component as ReactComponent,
   Suspense,
@@ -24,19 +25,22 @@ import { CinematicWorld, ComputeSculpture } from "./cinematic-scene";
 import { useCinema, componentPose } from "../lib/cinema";
 import { useMotionPreference } from "../lib/use-motion-preference";
 import { useLab, assemblyOrder } from "../lib/store";
-import type { ComponentSpec, Frame } from "../lib/types";
+import { useRenderer } from "../lib/renderer";
+import type { ComponentSpec } from "../lib/types";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 
-function Part({
-  part,
-  order,
-  frame,
-}: {
-  part: ComponentSpec;
-  order: number;
-  frame?: Frame;
-}) {
-  const ref = useRef<THREE.Group>(null);
+function measuredFrame() {
+  const s = useLab.getState();
+  const run = s.runs.at(-1);
+  return s.section === "simulate" && run && run.robot_id === s.robot?.id
+    ? run.frames[Math.min(s.playhead, run.frames.length - 1)]
+    : undefined;
+}
+
+function Part({ part, order }: { part: ComponentSpec; order: number }) {
+  const ref = useRef<THREE.Group>(null!);
+  const dragging = useRef(false);
+  const { invalidate } = useThree();
   const {
     selected,
     exploded,
@@ -47,7 +51,25 @@ function Part({
     speed,
     set,
     playing,
-  } = useLab();
+    transformMode,
+    inspectionOffsets,
+    section,
+  } = useLab(
+    useShallow((s) => ({
+      selected: s.selected,
+      exploded: s.exploded,
+      transparent: s.transparent,
+      isolate: s.isolate,
+      annotations: s.annotations,
+      replay: s.replay,
+      speed: s.speed,
+      set: s.set,
+      playing: s.playing,
+      transformMode: s.transformMode,
+      inspectionOffsets: s.inspectionOffsets,
+      section: s.section,
+    })),
+  );
   const start = useRef(0);
   const elapsed = useRef(0);
   const isWheel =
@@ -71,8 +93,10 @@ function Part({
   const target = useMemo(() => new THREE.Vector3(), []);
   useFrame((state, dt) => {
     if (!ref.current) return;
+    if (dragging.current) return;
     if (!start.current) start.current = state.clock.elapsedTime;
-    elapsed.current += Math.min(dt, 0.1) * speed;
+    // Slow renderers may skip visual samples; they must not stretch construction.
+    elapsed.current += dt * speed;
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -101,9 +125,12 @@ function Part({
     ref.current.rotation.set(...part.rotation);
     const spread = exploded ? 1 : (1 - progress) * 2.3;
     target.set(...part.position).addScaledVector(offset, spread);
+    if (section !== "simulate" && inspectionOffsets[part.id])
+      target.add(new THREE.Vector3(...inspectionOffsets[part.id]));
     if (reduced) ref.current.position.copy(target);
     else ref.current.position.lerp(target, Math.min(1, dt * 7));
     ref.current.scale.setScalar(Math.max(0.001, progress));
+    const frame = measuredFrame();
     if (isWheel && frame) {
       const robot = useLab.getState().robot;
       const index =
@@ -141,161 +168,193 @@ function Part({
     />
   );
   return (
-    <group
-      ref={ref}
-      position={[...part.position]}
-      rotation={[...part.rotation]}
-      onClick={(e) => {
-        e.stopPropagation();
-        useLab.getState().inspect(part.id);
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        setHover(true);
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        setHover(false);
-        document.body.style.cursor = "auto";
-      }}
-    >
-      {part.shape === "box" ? (
-        <RoundedBox
-          args={[w, h, d]}
-          radius={Math.min(0.025, Math.min(w, h, d) / 5)}
-          smoothness={3}
-          castShadow
-          receiveShadow
-        >
-          {material}
-        </RoundedBox>
-      ) : part.shape === "sphere" ? (
-        <mesh castShadow>
-          <sphereGeometry args={[w / 2, 24, 16]} />
-          {material}
-        </mesh>
-      ) : (
-        <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[w / 2, w / 2, h, 32]} />
-          {material}
-        </mesh>
-      )}
-      {isWheel && (
-        <>
-          {[-1, 1].map((sign) => (
-            <group key={sign} position={[0, sign * (h / 2 + 0.004), 0]}>
-              <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[w * 0.37, 0.013, 6, 32]} />
+    <>
+      <group
+        ref={ref}
+        position={[...part.position]}
+        rotation={[...part.rotation]}
+        onClick={(e) => {
+          e.stopPropagation();
+          useLab.getState().inspect(part.id);
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setHover(true);
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          setHover(false);
+          document.body.style.cursor = "auto";
+        }}
+      >
+        {part.shape === "box" ? (
+          <RoundedBox
+            args={[w, h, d]}
+            radius={Math.min(0.025, Math.min(w, h, d) / 5)}
+            smoothness={3}
+            castShadow
+            receiveShadow
+          >
+            {material}
+          </RoundedBox>
+        ) : part.shape === "sphere" ? (
+          <mesh castShadow>
+            <sphereGeometry args={[w / 2, 24, 16]} />
+            {material}
+          </mesh>
+        ) : (
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[w / 2, w / 2, h, 32]} />
+            {material}
+          </mesh>
+        )}
+        {isWheel && (
+          <>
+            {[-1, 1].map((sign) => (
+              <group key={sign} position={[0, sign * (h / 2 + 0.004), 0]}>
+                <mesh rotation={[Math.PI / 2, 0, 0]}>
+                  <torusGeometry args={[w * 0.37, 0.013, 6, 32]} />
+                  <meshStandardMaterial
+                    color="#aab2a5"
+                    metalness={0.95}
+                    roughness={0.23}
+                  />
+                </mesh>
+                <mesh>
+                  <cylinderGeometry args={[w * 0.16, w * 0.16, 0.015, 12]} />
+                  <meshStandardMaterial
+                    color="#89b64c"
+                    metalness={0.8}
+                    roughness={0.25}
+                  />
+                </mesh>
+              </group>
+            ))}
+            {Array.from({ length: 18 }, (_, i) => (
+              <mesh
+                key={i}
+                position={[
+                  Math.sin((i * Math.PI) / 9) * w * 0.49,
+                  0,
+                  Math.cos((i * Math.PI) / 9) * w * 0.49,
+                ]}
+                rotation={[0, (i * Math.PI) / 9, 0]}
+              >
+                <boxGeometry args={[0.016, h * 0.88, 0.018]} />
+                <meshStandardMaterial color="#161b17" roughness={0.9} />
+              </mesh>
+            ))}
+          </>
+        )}
+        {part.kind === "compute" && (
+          <group position={[0, h / 2 + 0.009, 0]}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <mesh key={i} position={[((i - 3) * w) / 9, 0.012, 0]}>
+                <boxGeometry args={[w / 20, 0.025, d * 0.8]} />
                 <meshStandardMaterial
-                  color="#aab2a5"
-                  metalness={0.95}
-                  roughness={0.23}
+                  color="#161d15"
+                  metalness={0.9}
+                  roughness={0.3}
                 />
               </mesh>
-              <mesh>
-                <cylinderGeometry args={[w * 0.16, w * 0.16, 0.015, 12]} />
-                <meshStandardMaterial
-                  color="#89b64c"
-                  metalness={0.8}
-                  roughness={0.25}
-                />
-              </mesh>
-            </group>
-          ))}
-          {Array.from({ length: 18 }, (_, i) => (
-            <mesh
-              key={i}
-              position={[
-                Math.sin((i * Math.PI) / 9) * w * 0.49,
-                0,
-                Math.cos((i * Math.PI) / 9) * w * 0.49,
-              ]}
-              rotation={[0, (i * Math.PI) / 9, 0]}
-            >
-              <boxGeometry args={[0.016, h * 0.88, 0.018]} />
-              <meshStandardMaterial color="#161b17" roughness={0.9} />
+            ))}
+            <mesh position={[w * 0.4, 0.01, d * 0.3]}>
+              <sphereGeometry args={[0.008, 8, 8]} />
+              <meshBasicMaterial color="#c1ff73" />
             </mesh>
-          ))}
-        </>
-      )}
-      {part.kind === "compute" && (
-        <group position={[0, h / 2 + 0.009, 0]}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <mesh key={i} position={[((i - 3) * w) / 9, 0.012, 0]}>
-              <boxGeometry args={[w / 20, 0.025, d * 0.8]} />
-              <meshStandardMaterial
-                color="#161d15"
+          </group>
+        )}
+        {part.kind === "sensor" &&
+          part.shape === "box" &&
+          [-1, 1].map((sign) => (
+            <mesh
+              key={sign}
+              position={[w / 2 + 0.004, 0, sign * d * 0.3]}
+              rotation={[0, 0, Math.PI / 2]}
+            >
+              <cylinderGeometry args={[0.025, 0.025, 0.012, 20]} />
+              <meshPhysicalMaterial
+                color="#0b1315"
                 metalness={0.9}
-                roughness={0.3}
+                roughness={0.06}
+                clearcoat={1}
               />
             </mesh>
           ))}
-          <mesh position={[w * 0.4, 0.01, d * 0.3]}>
-            <sphereGeometry args={[0.008, 8, 8]} />
-            <meshBasicMaterial color="#c1ff73" />
-          </mesh>
-        </group>
-      )}
-      {part.kind === "sensor" &&
-        part.shape === "box" &&
-        [-1, 1].map((sign) => (
-          <mesh
-            key={sign}
-            position={[w / 2 + 0.004, 0, sign * d * 0.3]}
-            rotation={[0, 0, Math.PI / 2]}
-          >
-            <cylinderGeometry args={[0.025, 0.025, 0.012, 20]} />
-            <meshPhysicalMaterial
-              color="#0b1315"
-              metalness={0.9}
-              roughness={0.06}
-              clearcoat={1}
-            />
-          </mesh>
-        ))}
+        {selectedPart &&
+          annotations &&
+          !playing &&
+          useLab.getState().section === "inspect" && (
+            <Html
+              center
+              position={[0, h + 0.15, 0]}
+              distanceFactor={3}
+              style={{ pointerEvents: "none" }}
+            >
+              <div className="part-label">
+                {part.name}
+                <span>{part.kind.toUpperCase()}</span>
+              </div>
+            </Html>
+          )}
+      </group>
       {selectedPart &&
-        annotations &&
-        !playing &&
-        useLab.getState().section === "inspect" && (
-          <Html
-            center
-            position={[0, h + 0.15, 0]}
-            distanceFactor={3}
-            style={{ pointerEvents: "none" }}
-          >
-            <div className="part-label">
-              {part.name}
-              <span>{part.kind.toUpperCase()}</span>
-            </div>
-          </Html>
+        section === "inspect" &&
+        transformMode === "translate" &&
+        !exploded && (
+          <TransformControls
+            object={ref}
+            mode="translate"
+            size={0.7}
+            onMouseDown={() => {
+              dragging.current = true;
+            }}
+            onObjectChange={() => invalidate()}
+            onMouseUp={() => {
+              dragging.current = false;
+              if (!ref.current) return;
+              const next = ref.current.position
+                .toArray()
+                .map((n, i) =>
+                  Math.max(-5, Math.min(5, n - part.position[i])),
+                ) as [number, number, number];
+              set({
+                inspectionOffsets: {
+                  ...useLab.getState().inspectionOffsets,
+                  [part.id]: next,
+                },
+              });
+              invalidate();
+            }}
+          />
         )}
-    </group>
+    </>
   );
 }
 
 function Robot() {
-  const { robot, assembly, runs, section, playhead, playing, speed, set } =
-    useLab();
+  const { robot, assembly, runs, section } = useLab(
+    useShallow((s) => ({
+      robot: s.robot,
+      assembly: s.assembly,
+      runs: s.runs,
+      section: s.section,
+    })),
+  );
   const group = useRef<THREE.Group>(null);
   const run = runs.at(-1);
-  const frame =
-    section === "simulate"
-      ? run?.frames[Math.min(playhead, (run?.frames.length || 1) - 1)]
-      : undefined;
-  const accumulator = useRef(0);
-  useFrame((state, dt) => {
-    if (playing && run) {
-      accumulator.current += Math.min(dt, 0.1) * speed;
-      if (accumulator.current >= 0.04) {
-        const advance = Math.floor(accumulator.current / 0.04);
-        accumulator.current %= 0.04;
-        const next = useLab.getState().playhead + advance;
-        set({
-          playhead: Math.min(next, run.frames.length - 1),
-          playing: next < run.frames.length - 1,
-        });
-      }
-    }
+  const trajectory = useMemo(
+    () =>
+      run?.frames.map(
+        (f) =>
+          [f.position[0], 0.015, f.position[2]] as [number, number, number],
+      ) || [],
+    [run],
+  );
+  const origin = useMemo(() => new THREE.Vector3(), []);
+  const identity = useMemo(() => new THREE.Quaternion(), []);
+  useFrame(() => {
+    const frame = measuredFrame();
     if (group.current) {
       if (frame) {
         group.current.position.set(
@@ -311,8 +370,8 @@ function Robot() {
         group.current.position.set(0, 0, 0);
         group.current.quaternion.identity();
       } else {
-        group.current.position.lerp(new THREE.Vector3(0, 0, 0), 0.1);
-        group.current.quaternion.slerp(new THREE.Quaternion(), 0.1);
+        group.current.position.lerp(origin, 0.1);
+        group.current.quaternion.slerp(identity, 0.1);
       }
     }
   });
@@ -325,16 +384,12 @@ function Robot() {
             key={robot.id + c.id}
             part={c}
             order={assemblyOrder(assembly, c.id)}
-            frame={frame}
           />
         ))}
       </group>
       {section === "simulate" && run && run.frames.length > 1 && (
         <Line
-          points={run.frames.map(
-            (f) =>
-              [f.position[0], 0.015, f.position[2]] as [number, number, number],
-          )}
+          points={trajectory}
           color="#b3de7a"
           lineWidth={1.6}
           dashed
@@ -347,7 +402,16 @@ function Robot() {
 }
 function CameraRig() {
   const controls = useRef<OrbitControlsType>(null);
-  const { camera, selected, robot, section, entered } = useLab();
+  const { camera, selected, robot, section, entered, followRobot } = useLab(
+    useShallow((s) => ({
+      camera: s.camera,
+      selected: s.selected,
+      robot: s.robot,
+      section: s.section,
+      entered: s.entered,
+      followRobot: s.followRobot,
+    })),
+  );
   const runId = useLab((s) => s.runs.at(-1)?.id);
   const { camera: threeCamera, size } = useThree();
   const destination = useRef(new THREE.Vector3(2.3, 1.7, 2.5));
@@ -357,16 +421,8 @@ function CameraRig() {
   useEffect(() => {
     const projection = threeCamera as THREE.PerspectiveCamera;
     if (projection.isPerspectiveCamera) {
-      if (entered && size.width > 760)
-        projection.setViewOffset(
-          size.width,
-          size.height,
-          Math.min(240, size.width * 0.18),
-          0,
-          size.width,
-          size.height,
-        );
-      else projection.clearViewOffset();
+      // The studio has a dedicated center viewport; no overlay compensation.
+      projection.clearViewOffset();
     }
     const part = robot?.components.find((c) => c.id === selected);
     target.current.set(
@@ -376,7 +432,7 @@ function CameraRig() {
         number,
       ]),
     );
-    const scale = robot
+    let scale = robot
       ? Math.max(
           ...robot.dimensions_m,
           ...robot.components.flatMap((c) =>
@@ -385,6 +441,19 @@ function CameraRig() {
           1,
         )
       : 1.2;
+    const recorded =
+      section === "simulate" ? useLab.getState().runs.at(-1) : undefined;
+    if (recorded && !followRobot) {
+      const xs = recorded.frames.map((f) => f.position[0]);
+      const zs = recorded.frames.map((f) => f.position[2]);
+      target.current.x += (Math.min(...xs) + Math.max(...xs)) / 2;
+      target.current.z += (Math.min(...zs) + Math.max(...zs)) / 2;
+      scale = Math.max(
+        scale,
+        (Math.max(...xs) - Math.min(...xs) + scale) * 0.75,
+        Math.max(...zs) - Math.min(...zs),
+      );
+    }
     destination.current
       .copy(target.current)
       .add(
@@ -406,7 +475,7 @@ function CameraRig() {
     }
     const lab = useLab.getState();
     const pose =
-      section === "simulate"
+      section === "simulate" && followRobot
         ? lab.runs.at(-1)?.frames[lab.playhead]?.position
         : undefined;
     if (pose) {
@@ -423,6 +492,7 @@ function CameraRig() {
     section,
     entered,
     runId,
+    followRobot,
     size.width,
     size.height,
     threeCamera,
@@ -430,8 +500,7 @@ function CameraRig() {
   useFrame((_, dt) => {
     if (!useLab.getState().entered) return;
     const s = useLab.getState();
-    const f =
-      s.section === "simulate" ? s.runs.at(-1)?.frames[s.playhead] : undefined;
+    const f = s.followRobot ? measuredFrame() : undefined;
     const pos = new THREE.Vector3(
       ...((f ? f.position : [0, 0, 0]) as [number, number, number]),
     );
@@ -480,10 +549,38 @@ function Performance({
 }) {
   const frames = useRef(0),
     elapsed = useRef(0);
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
+  useEffect(() => useLab.subscribe(() => invalidate()), [invalidate]);
+  useEffect(() => {
+    const context = gl.getContext();
+    const info = context.getExtension("WEBGL_debug_renderer_info");
+    const read = (parameter: number) =>
+      String(context.getParameter(parameter) || "Not disclosed");
+    useRenderer.setState({
+      status: "available",
+      version: read(context.VERSION),
+      renderer: read(info ? info.UNMASKED_RENDERER_WEBGL : context.RENDERER),
+      vendor: read(info ? info.UNMASKED_VENDOR_WEBGL : context.VENDOR),
+    });
+    const lost = () => {
+      useRenderer.setState({ status: "lost", fps: null });
+      useLab.getState().set({ playing: false, renderedRobotId: null });
+    };
+    const restored = () => {
+      useRenderer.setState({ status: "available" });
+      invalidate();
+    };
+    gl.domElement.addEventListener("webglcontextlost", lost);
+    gl.domElement.addEventListener("webglcontextrestored", restored);
+    return () => {
+      gl.domElement.removeEventListener("webglcontextlost", lost);
+      gl.domElement.removeEventListener("webglcontextrestored", restored);
+    };
+  }, [gl, invalidate]);
   useEffect(() => {
     frames.current = 0;
     elapsed.current = 0;
+    useRenderer.setState({ demand: staticFrame, fps: null });
     const node = document.getElementById("render-fps");
     if (node)
       node.textContent = staticFrame
@@ -491,13 +588,29 @@ function Performance({
         : "RENDER RATE · MEASURING";
   }, [staticFrame]);
   useFrame((_, dt) => {
-    if (staticFrame) return;
+    if (staticFrame) {
+      const current = useRenderer.getState();
+      if (
+        current.calls !== gl.info.render.calls ||
+        current.triangles !== gl.info.render.triangles
+      )
+        useRenderer.setState({
+          calls: gl.info.render.calls,
+          triangles: gl.info.render.triangles,
+        });
+      return;
+    }
     frames.current++;
     elapsed.current += dt;
     if (elapsed.current > 2) {
       const fps = frames.current / elapsed.current;
       const node = document.getElementById("render-fps");
       if (node) node.textContent = `${Math.round(fps)} FPS · LIVE`;
+      useRenderer.setState({
+        fps,
+        calls: gl.info.render.calls,
+        triangles: gl.info.render.triangles,
+      });
       if (fps < 22) {
         onSlow(Math.max(0.35, Math.min(0.75, gl.getPixelRatio() * 0.75)));
       }
@@ -514,6 +627,10 @@ class SceneBoundary extends ReactComponent<
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    useRenderer.setState({ status: "error", fps: null });
+    useLab.getState().set({ renderedRobotId: null });
   }
   render() {
     return this.state.failed ? (
@@ -557,6 +674,7 @@ export default function RobotScene() {
       context.getExtension("WEBGL_lose_context")?.loseContext();
     }
     setSupported(!!context);
+    if (!context) useRenderer.setState({ status: "unavailable", fps: null });
   }, []);
   if (supported === null)
     return <div className="scene-loading">INITIALIZING CONSTRUCTION LAB</div>;
@@ -570,7 +688,10 @@ export default function RobotScene() {
           camera={{ position: [2.8, 2, 3], fov: 35, near: 0.01, far: 300 }}
           gl={{ antialias: !low, powerPreference: "high-performance" }}
           onPointerMissed={(event) => {
-            if ((event.target as HTMLElement)?.tagName === "CANVAS")
+            if (
+              (event.target as HTMLElement)?.tagName === "CANVAS" &&
+              useLab.getState().transformMode === "off"
+            )
               useLab.getState().set({ selected: null });
           }}
         >
@@ -623,21 +744,14 @@ export default function RobotScene() {
           >
             <planeGeometry args={[100, 100]} />
             <meshStandardMaterial
-              color={entered ? "#141916" : "#07070d"}
+              color={entered ? "#0e141b" : "#07070d"}
               roughness={0.95}
             />
           </mesh>
-          <Grid
+          <gridHelper
             visible={entered}
-            args={[28, 28]}
-            position={[0, -0.006, 0]}
-            cellSize={0.25}
-            sectionSize={1}
-            cellColor="#303a32"
-            sectionColor="#43513e"
-            fadeDistance={12}
-            fadeStrength={2}
-            infiniteGrid
+            args={[40, 80, "#526a7d", "#2b3d4c"]}
+            position={[0, 0.001, 0]}
           />
           <group visible={entered || phase === "transform"}>
             <Robot />

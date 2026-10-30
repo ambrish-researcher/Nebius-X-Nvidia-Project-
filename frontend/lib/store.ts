@@ -19,6 +19,9 @@ export const initialTask: Task = {
 };
 type State = {
   renderedRobotId: string | null;
+  followRobot: boolean;
+  transformMode: "off" | "translate";
+  inspectionOffsets: Record<string, [number, number, number]>;
   visualPreview: boolean;
   atlasFamily: string;
   atlasConcept: string;
@@ -51,6 +54,9 @@ type State = {
 };
 export const useLab = create<State>((set, get) => ({
   renderedRobotId: null,
+  followRobot: false,
+  transformMode: "off",
+  inspectionOffsets: {},
   visualPreview: false,
   atlasFamily: "jetson",
   atlasConcept: "parallel",
@@ -90,6 +96,8 @@ export const useLab = create<State>((set, get) => ({
   setRobot: (robot, assembly) =>
     set({
       renderedRobotId: null,
+      transformMode: "off",
+      inspectionOffsets: {},
       robot,
       assembly,
       driveSpeed: 4,

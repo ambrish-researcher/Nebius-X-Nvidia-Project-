@@ -1,5 +1,7 @@
 # Implementation status
 
+Current studio: [workspace, timestamp playback, and execution diagnostics](studio-milestone.md).
+
 Current core workflow: [live generation, input, request recovery, and support matrix](core-workflow.md). Older milestones below are historical.
 
 This tracks the delivered local slice, not a claim that all requested platform features are finished.

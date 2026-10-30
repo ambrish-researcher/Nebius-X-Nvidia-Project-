@@ -4,9 +4,15 @@ No public deployment or paid infrastructure has been created. Choose and authori
 
 ## Frontend / Vercel
 
-Import the existing GitHub repository and set **Root Directory = frontend**. Allow files outside the root directory. `frontend/vercel.json` installs the root lockfile with `npm ci --prefix ..`, builds the application from the parent script, and publishes `.next`. Node 24 is supported by the locally validated stack. Set backend-only `BACKEND_URL` to the Python service's HTTPS URL **before building**, because Next.js rewrites are generated at build time. Do not put the Nebius credential in Vercel public variables.
+Import the existing GitHub repository and leave **Root Directory at the repository root**. The current root `vercel.json` runs `npm ci`, builds with `npm run build`, and uses `frontend/.next` as its output directory. There is no `frontend/vercel.json`. Remove an older `frontend` root override if one is configured in the hosting account. Node 24 is supported by the locally validated stack. Set server-side `BACKEND_URL` to the Python service's HTTPS URL **before building**, because Next.js rewrites are generated at build time. Do not put the Nebius credential in Vercel public variables.
 
-The Vercel configuration has not been exercised against a hosting account. Validate Next.js root detection and output-directory settings during the first deployment. The app does not require remote image, model, HDRI, or font hosts.
+The Vercel configuration has not been exercised against a hosting account in this task. Validate Next.js root detection and output-directory settings during deployment. The app does not require remote image, model, HDRI, or font hosts. Vercel serves the Next.js frontend; it does not start the long-running Python MuJoCo service. A missing or unreachable `BACKEND_URL` prevents generation and simulation even if the landing page loads.
+
+## Verify the production build locally
+
+With the Python backend running on port 8000, use `npm run build` and then `npm run start -- --port 3000` from the repository root. This runs the optimized Next.js build rather than the development server. The studio milestone was tested this way on port 3001. For cost-safe visual verification, set `ARISE_VISUAL_DEV=1` on the backend; paid generation is then blocked rather than replaced with an invented robot. Curated reference models and real CPU physics remain usable. Restart without that flag when intentionally enabling authenticated inference.
+
+After either local or authorized public deployment, type, edit, and paste an original prompt with the keyboard. Check focus before and after interacting with the viewport. For a cost-free smoke check, open **Autonomous rover**, select a hierarchy component, and press **Start simulation**. The response must show `execution.processor: cpu`, an initial state at time zero, final state at the reported duration, and actual integration steps. Use the bottom dock to Play, Pause, Reset, and Replay. Reset and Replay must not send another `/api/simulate` request. Execution backends must match the browser's actual WebGL context; software rendering must not be described as NVIDIA GPU physics.
 
 ## Python service
 
