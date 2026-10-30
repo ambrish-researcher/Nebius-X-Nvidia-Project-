@@ -732,8 +732,9 @@ export default function Home() {
         <div className="backend-unavailable">
           <AlertCircle size={18} />
           <p>
-            The engineering service is unavailable. Start the FastAPI backend
-            and retry.
+            The engineering service could not be reached. On hosted deployments,
+            the backend may be restarting or temporarily unavailable. Your
+            browser workspace is still accessible; retry the connection.
           </p>
           <Button variant="outline" onClick={() => setRetry(retry + 1)}>
             Retry connection
