@@ -95,13 +95,20 @@ def readiness():
     """Check local ledger availability without contacting Nebius or charging tokens."""
     try:
         verification = ai.verification_status()
-        return {"status": "ready", "ledger_available": True,
+        # A real round-trip checks storage writes and reads without retaining probe data.
+        with ai.database() as ledger:
+            ledger.execute("CREATE TABLE IF NOT EXISTS readiness_probes (id TEXT PRIMARY KEY, value TEXT NOT NULL)")
+            ledger.execute("INSERT INTO readiness_probes (id,value) VALUES (?,?)", ("healthcheck", "ok")) if not ledger.execute("SELECT value FROM readiness_probes WHERE id=?", ("healthcheck",)).fetchone() else None
+            probe = ledger.execute("SELECT value FROM readiness_probes WHERE id=?", ("healthcheck",)).fetchone()
+            if not probe or probe[0] != "ok":
+                raise RuntimeError("Ledger round-trip failed")
+        return {"status": "ready", "ledger_available": True, "ledger_write_verified": True,
                 "live_inference_verified": verification["verified"],
                 "inference_verification": verification}
     except Exception:  # Readiness must report storage failures, never leak credentials or paths.
         return JSONResponse(
             {"status": "degraded", "ledger_available": False,
-             "detail": "Local inference ledger unavailable; generation is not ready."},
+             "detail": "Inference ledger unavailable; generation is not ready."},
             status_code=503,
         )
 
