@@ -138,7 +138,7 @@ def supported_drive_task(task):
         return None
     description = task.description.strip().lower().rstrip(".!")
     match = re.fullmatch(
-        r"(?:drive|move|travel|go) forward(?: (?:for|by))? (\\d+(?:\\.\\d+)?) (meters?|metres?|m)",
+        r"(?:drive|move|travel|go) forward(?: (?:for|by))? ([0-9]+(?:[.][0-9]+)?) (meters?|metres?|m)",
         description,
     )
     if match:
