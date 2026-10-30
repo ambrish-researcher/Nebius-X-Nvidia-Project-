@@ -20,8 +20,16 @@ from .models import (
 )
 from .reference import reference_robot, assembly_steps
 from .hardware import HARDWARE, recommend
-from .simulation import simulate
-from .simulation import assess
+# Load MuJoCo only for physics operations, not for liveness or AI requests.
+def simulate(*args, **kwargs):
+    from .simulation import simulate as _simulate
+    return _simulate(*args, **kwargs)
+
+
+def assess(*args, **kwargs):
+    from .simulation import assess as _assess
+    return _assess(*args, **kwargs)
+
 from .generation import Design, validate_design
 from . import request_jobs
 from starlette.responses import JSONResponse
