@@ -90,7 +90,7 @@ def readiness():
         return {"status": "ready", "ledger_available": True,
                 "live_inference_verified": verification["verified"],
                 "inference_verification": verification}
-    except (OSError, RuntimeError, ValueError) as exc:
+    except Exception:  # Readiness must report storage failures, never leak credentials or paths.
         return JSONResponse(
             {"status": "degraded", "ledger_available": False,
              "detail": "Local inference ledger unavailable; generation is not ready."},
