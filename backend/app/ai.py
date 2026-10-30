@@ -30,6 +30,9 @@ def number_setting(name, default):
 
 
 def database():
+    if os.getenv("DATABASE_URL"):
+        from .postgres_ledger import database as postgres_database
+        return postgres_database()
     path = Path(os.getenv("LAB_DATA_DIR", ".runtime"))
     path.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(path / "usage.sqlite", timeout=10)
