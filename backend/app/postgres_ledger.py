@@ -4,7 +4,6 @@ Use DATABASE_URL only when configured. Connections are transactional; concurrent
 budget reservations acquire a PostgreSQL advisory transaction lock.
 """
 import os
-import re
 
 
 class LedgerConnection:
