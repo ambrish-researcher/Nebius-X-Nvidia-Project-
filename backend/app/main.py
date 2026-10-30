@@ -299,6 +299,56 @@ def recommendation(req: ProjectRequest):
     return recommend(req)
 
 
+@app.post("/api/mission/plan")
+def mission_plan(req: ProjectRequest):
+    """Plan any described mission without falsely claiming execution or spending AI tokens."""
+    from .simulation import supported_drive_task
+
+    assessment = assess(req.robot)
+    hardware = recommend(req)
+    distance = supported_drive_task(req.task)
+    runnable = bool(assessment["physics_valid"] and distance is not None)
+    reasons = list(hardware["feasibility_issues"])
+    if not assessment["physics_valid"]:
+        reasons.extend(assessment["limitations"])
+    if distance is None:
+        reasons.append(
+            "The installed controller executes only simple forward-distance missions. "
+            "This requested task needs an additional validated controller, sensors, "
+            "environment model, or simulator adapter."
+        )
+    if distance is not None and distance > 0.0:
+        reasons.append(
+            "Completion is determined from measured forward displacement and tilt, "
+            "not from the prompt alone. Requested distance may exceed the simulation time."
+        )
+    return {
+        "task": req.task.description,
+        "robot_id": req.robot.id,
+        "status": "ready_to_simulate" if runnable else "requires_engineering",
+        "execution_available": runnable,
+        "execution_engine": "MuJoCo CPU" if runnable else None,
+        "mission_type": "flat_floor_forward_drive" if distance is not None else "unsupported",
+        "target_distance_m": distance,
+        "recommended_hardware_id": hardware["recommended_id"],
+        "hardware_reasoning": hardware["reasoning"],
+        "feasibility_issues": reasons,
+        "next_action": (
+            "Call /api/simulate with the same robot and task; inspect measured "
+            "task_completed, frames, and limitations."
+            if runnable else
+            "Engineer and validate the missing controller/environment before "
+            "attempting execution. The platform will not fabricate a result."
+        ),
+        "gpu_explanation": {
+            "robot_design": "Nebius-hosted NVIDIA model inference; provider GPU is not measured.",
+            "physics": "MuJoCo runs on the Render CPU, not the selected GPU.",
+            "visualization": "Browser WebGL may use the student's GPU for 3D display.",
+            "deployment": "Choosing Jetson/H100 is advisory, not a robot deployment.",
+        },
+    }
+
+
 @app.post("/api/simulate")
 def run(req: SimulationRequest):
     candidates = recommend(req)["candidates"]
