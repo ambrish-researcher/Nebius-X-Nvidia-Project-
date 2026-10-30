@@ -23,3 +23,12 @@ jobs:
         env:
           ARISE_VISUAL_DEV: '1'
           LAB_ENV: test
+  production-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Verify deployed API and frontend proxy (no paid inference)
+        run: python backend/smoke_production.py
+        env:
+          ARISE_BACKEND_URL: https://arise-robotics-api.onrender.com
+          ARISE_FRONTEND_URL: https://frontend-two-sigma-zj62mqejyn.vercel.app
