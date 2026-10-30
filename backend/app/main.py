@@ -110,6 +110,30 @@ def readiness():
 def capabilities():
     return dict(
         procedural_geometry=["box", "cylinder", "sphere"],
+        compute_explanation={
+            "design_ai": {
+                "where": "Nebius Token Factory",
+                "technology": "NVIDIA Nemotron language model",
+                "why": "Translate prompts into structured robot specifications and educational reasoning.",
+                "gpu_role": "Provider-managed AI inference; the application does not measure the provider GPU.",
+            },
+            "physics": {
+                "where": "Render FastAPI backend",
+                "technology": "MuJoCo",
+                "why": "Execute supported robot dynamics and measure displacement, tilt, and contacts.",
+                "gpu_role": "CPU physics only; no CUDA or Isaac Sim GPU physics is integrated.",
+            },
+            "visualization": {
+                "where": "User browser",
+                "technology": "Three.js/WebGL",
+                "why": "Render and inspect interactive 3D robot geometry and recorded trajectories.",
+                "gpu_role": "Browser graphics may use the device GPU; this does not accelerate backend physics.",
+            },
+            "hardware_recommendations": {
+                "basis": "Compatibility assumptions, not real hardware benchmarks.",
+                "limitation": "Selecting a GPU does not deploy robot code or execute CUDA workloads.",
+            },
+        },
         simulation=[
             dict(
                 id="flat-floor-drive",
