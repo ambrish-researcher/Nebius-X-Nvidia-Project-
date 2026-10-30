@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
+  testMatch: "**/cinematic.spec.ts",
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
@@ -9,7 +10,11 @@ export default defineConfig({
     baseURL: process.env.E2E_BASE_URL || "http://127.0.0.1:3000",
     headless: true,
     launchOptions: {
-      executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+      executablePath:
+        process.env.CHROMIUM_PATH ||
+        (process.platform === "win32"
+          ? "C:/Program Files/Google/Chrome/Application/chrome.exe"
+          : "/usr/bin/chromium"),
       args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
     },
     trace: "retain-on-failure",

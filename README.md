@@ -1,5 +1,13 @@
 # Nebius-X-Nvidia-Project-
 
+## Current frontend: cinematic three-robot learning
+
+The active ARISE interface now follows **prompt → procedural assembly → robot task → compute guidance → student learning**, supporting humanoid, drone and Microduck educational templates. It replaces the previous rover dashboard and ball sequence. Assembly and motion work locally without AI. Tasks demonstrate kinematics; they do not establish physical stability or hardware readiness.
+
+See [the local redesign implementation and verification guide](docs/ARISE-REDESIGN.md) for Windows commands, tests, references and limitations. Use port 3100 if another application occupies port 3000. No cloud deployment is included in this rebuild.
+
+The sections below describe the earlier platform and retained backend capabilities. Their retired frontend controls and live-verification history do not describe the current page or establish live provider availability in this session.
+
 **ARISE — THE FUTURE OF KNOWLEDGE AND UNDERSTANDING IN A SINGLE PROMPT**
 
 An immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.

@@ -3,7 +3,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ARISE — Ideas become machines",
   description:
-    "A continuous robotics engineering laboratory. Explore robot construction, learn component mechanics, compare compute architectures, and run real MuJoCo experiments.",
+    "Imagine, assemble and understand humanoid, drone and Microduck robots in an interactive 3D learning environment.",
 };
 export default function RootLayout({
   children,

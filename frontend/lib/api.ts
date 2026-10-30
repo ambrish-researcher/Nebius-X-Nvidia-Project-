@@ -1,6 +1,10 @@
 import { useLab } from "./store";
 import { visualFixture } from "./visual-fixtures";
-export async function api<T>(path: string, body?: unknown): Promise<T> {
+export async function api<T>(
+  path: string,
+  body?: unknown,
+  timeoutMs = 100_000,
+): Promise<T> {
   if (path === "ai" && useLab.getState().visualPreview)
     return visualFixture(body) as T;
   const token =
@@ -14,7 +18,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       ...(token ? { "X-Lab-Token": token } : {}),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: AbortSignal.timeout(100_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
