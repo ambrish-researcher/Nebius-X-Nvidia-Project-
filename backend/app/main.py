@@ -61,7 +61,9 @@ async def deployment_guard(request: Request, call_next):
 
 @app.get("/api/health")
 def health():
-    verification = ai.verification_status()
+    # Liveness must not depend on local SQLite or cloud inference.
+    # Durable ledger/readiness is checked separately, so a broken disk cannot
+    # turn a lightweight Render health probe into an expensive failing request.
     return dict(
         status="ok",
         visual_preview=os.getenv("ARISE_VISUAL_DEV") == "1",
@@ -75,9 +77,25 @@ def health():
         supabase_configured=bool(
             os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_ANON_KEY")
         ),
-        live_inference_verified=verification["verified"],
-        inference_verification=verification,
+        live_inference_verified=False,
+        inference_verification={"verified": False, "basis": "Liveness does not query the inference ledger; use /api/readiness."},
     )
+
+
+@app.get("/api/readiness")
+def readiness():
+    """Check local ledger availability without contacting Nebius or charging tokens."""
+    try:
+        verification = ai.verification_status()
+        return {"status": "ready", "ledger_available": True,
+                "live_inference_verified": verification["verified"],
+                "inference_verification": verification}
+    except (OSError, RuntimeError, ValueError) as exc:
+        return JSONResponse(
+            {"status": "degraded", "ledger_available": False,
+             "detail": "Local inference ledger unavailable; generation is not ready."},
+            status_code=503,
+        )
 
 
 @app.get("/api/capabilities")
