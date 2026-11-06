@@ -20,8 +20,16 @@ from .models import (
 )
 from .reference import reference_robot, assembly_steps
 from .hardware import HARDWARE, recommend
-from .simulation import simulate
-from .simulation import assess
+# Load MuJoCo only for physics operations, not for liveness or AI requests.
+def simulate(*args, **kwargs):
+    from .simulation import simulate as _simulate
+    return _simulate(*args, **kwargs)
+
+
+def assess(*args, **kwargs):
+    from .simulation import assess as _assess
+    return _assess(*args, **kwargs)
+
 from .generation import Design, validate_design
 from . import request_jobs
 from starlette.responses import JSONResponse
@@ -61,7 +69,9 @@ async def deployment_guard(request: Request, call_next):
 
 @app.get("/api/health")
 def health():
-    verification = ai.verification_status()
+    # Liveness must not depend on local SQLite or cloud inference.
+    # Durable ledger/readiness is checked separately, so a broken disk cannot
+    # turn a lightweight Render health probe into an expensive failing request.
     return dict(
         status="ok",
         visual_preview=os.getenv("ARISE_VISUAL_DEV") == "1",
@@ -75,15 +85,62 @@ def health():
         supabase_configured=bool(
             os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_ANON_KEY")
         ),
-        live_inference_verified=verification["verified"],
-        inference_verification=verification,
+        live_inference_verified=False,
+        inference_verification={"verified": False, "basis": "Liveness does not query the inference ledger; use /api/readiness."},
     )
+
+
+@app.get("/api/readiness")
+def readiness():
+    """Check local ledger availability without contacting Nebius or charging tokens."""
+    try:
+        verification = ai.verification_status()
+        # A real round-trip checks storage writes and reads without retaining probe data.
+        with ai.database() as ledger:
+            ledger.execute("CREATE TABLE IF NOT EXISTS readiness_probes (id TEXT PRIMARY KEY, value TEXT NOT NULL)")
+            ledger.execute("INSERT INTO readiness_probes (id,value) VALUES (?,?)", ("healthcheck", "ok")) if not ledger.execute("SELECT value FROM readiness_probes WHERE id=?", ("healthcheck",)).fetchone() else None
+            probe = ledger.execute("SELECT value FROM readiness_probes WHERE id=?", ("healthcheck",)).fetchone()
+            if not probe or probe[0] != "ok":
+                raise RuntimeError("Ledger round-trip failed")
+        return {"status": "ready", "ledger_available": True, "ledger_write_verified": True,
+                "live_inference_verified": verification["verified"],
+                "inference_verification": verification}
+    except Exception:  # Readiness must report storage failures, never leak credentials or paths.
+        return JSONResponse(
+            {"status": "degraded", "ledger_available": False,
+             "detail": "Inference ledger unavailable; generation is not ready."},
+            status_code=503,
+        )
 
 
 @app.get("/api/capabilities")
 def capabilities():
     return dict(
         procedural_geometry=["box", "cylinder", "sphere"],
+        compute_explanation={
+            "design_ai": {
+                "where": "Nebius Token Factory",
+                "technology": "NVIDIA Nemotron language model",
+                "why": "Translate prompts into structured robot specifications and educational reasoning.",
+                "gpu_role": "Provider-managed AI inference; the application does not measure the provider GPU.",
+            },
+            "physics": {
+                "where": "Render FastAPI backend",
+                "technology": "MuJoCo",
+                "why": "Execute supported robot dynamics and measure displacement, tilt, and contacts.",
+                "gpu_role": "CPU physics only; no CUDA or Isaac Sim GPU physics is integrated.",
+            },
+            "visualization": {
+                "where": "User browser",
+                "technology": "Three.js/WebGL",
+                "why": "Render and inspect interactive 3D robot geometry and recorded trajectories.",
+                "gpu_role": "Browser graphics may use the device GPU; this does not accelerate backend physics.",
+            },
+            "hardware_recommendations": {
+                "basis": "Compatibility assumptions, not real hardware benchmarks.",
+                "limitation": "Selecting a GPU does not deploy robot code or execute CUDA workloads.",
+            },
+        },
         simulation=[
             dict(
                 id="flat-floor-drive",
@@ -247,6 +304,56 @@ async def assist(req: AIRequest):
 @app.post("/api/recommend")
 def recommendation(req: ProjectRequest):
     return recommend(req)
+
+
+@app.post("/api/mission/plan")
+def mission_plan(req: ProjectRequest):
+    """Plan any described mission without falsely claiming execution or spending AI tokens."""
+    from .simulation import supported_drive_task
+
+    assessment = assess(req.robot)
+    hardware = recommend(req)
+    distance = supported_drive_task(req.task)
+    runnable = bool(assessment["physics_valid"] and distance is not None)
+    reasons = list(hardware["feasibility_issues"])
+    if not assessment["physics_valid"]:
+        reasons.extend(assessment["limitations"])
+    if distance is None:
+        reasons.append(
+            "The installed controller executes only simple forward-distance missions. "
+            "This requested task needs an additional validated controller, sensors, "
+            "environment model, or simulator adapter."
+        )
+    if distance is not None and distance > 0.0:
+        reasons.append(
+            "Completion is determined from measured forward displacement and tilt, "
+            "not from the prompt alone. Requested distance may exceed the simulation time."
+        )
+    return {
+        "task": req.task.description,
+        "robot_id": req.robot.id,
+        "status": "ready_to_simulate" if runnable else "requires_engineering",
+        "execution_available": runnable,
+        "execution_engine": "MuJoCo CPU" if runnable else None,
+        "mission_type": "flat_floor_forward_drive" if distance is not None else "unsupported",
+        "target_distance_m": distance,
+        "recommended_hardware_id": hardware["recommended_id"],
+        "hardware_reasoning": hardware["reasoning"],
+        "feasibility_issues": reasons,
+        "next_action": (
+            "Call /api/simulate with the same robot and task; inspect measured "
+            "task_completed, frames, and limitations."
+            if runnable else
+            "Engineer and validate the missing controller/environment before "
+            "attempting execution. The platform will not fabricate a result."
+        ),
+        "gpu_explanation": {
+            "robot_design": "Nebius-hosted NVIDIA model inference; provider GPU is not measured.",
+            "physics": "MuJoCo runs on the Render CPU, not the selected GPU.",
+            "visualization": "Browser WebGL may use the student's GPU for 3D display.",
+            "deployment": "Choosing Jetson/H100 is advisory, not a robot deployment.",
+        },
+    }
 
 
 @app.post("/api/simulate")

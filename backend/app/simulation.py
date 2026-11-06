@@ -1,4 +1,5 @@
 import math
+import re
 import time
 from uuid import uuid4
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -130,10 +131,29 @@ def build_model(robot):
     return mujoco.MjModel.from_xml_string(tostring(root, encoding="unicode"))
 
 
+
+def supported_drive_task(task):
+    """Recognize bounded straight-line rover missions; never claim general autonomy."""
+    if task.needs_vision or task.needs_manipulation or task.outdoor:
+        return None
+    description = task.description.strip().lower().rstrip(".!")
+    match = re.fullmatch(
+        r"(?:drive|move|travel|go) (forward|backward|backwards|in reverse)(?: (?:for|by))? ([0-9]+(?:[.][0-9]+)?) (meters?|metres?|m)",
+        description,
+    )
+    if match:
+        return float(match.group(2)) * (-1 if match.group(1) != "forward" else 1)
+    if description in ("drive forward", "move forward", "go forward", "travel forward"):
+        return 0.1
+    if description in ("drive backward", "move backward", "go backward", "travel backward", "drive backwards", "move backwards", "go backwards", "travel backwards", "drive in reverse", "move in reverse", "go in reverse"):
+        return -0.1
+    return None
+
+
 def simulate(req: SimulationRequest):
     model = build_model(req.robot)
     data = mujoco.MjData(model)
-    # A fixed forward velocity setpoint is a controlled physics experiment, not an arbitrary task solver.
+    # Signed straight-line velocity control is a physics experiment, not an arbitrary task solver.
     frames = []
     started = time.perf_counter()
     contacts = 0
@@ -167,8 +187,10 @@ def simulate(req: SimulationRequest):
 
     mujoco.mj_forward(model, data)
     frames.append(record_frame())
+    required_distance = supported_drive_task(req.task)
+    direction = -1 if required_distance is not None and required_distance < 0 else 1
     for i in range(steps):
-        data.ctrl[:] = np.minimum(
+        data.ctrl[:] = direction * np.minimum(
             model.actuator_ctrlrange[:, 1],
             min(req.wheel_speed_rad_s, i * model.opt.timestep * 4.0),
         )
@@ -182,6 +204,9 @@ def simulate(req: SimulationRequest):
             # Frames carry actual measured joint states and actuator outputs.
             frames.append(record_frame())
     displacement = float(np.linalg.norm(data.qpos[:2]))
+    # Signed distance is measured along the world X axis, not total travel.
+    forward_distance = float(data.qpos[0] - frames[0]["position"][0])
+    task_completed = (direction * forward_distance >= abs(required_distance) and max_tilt < 0.5) if required_distance is not None else None
     wall = time.perf_counter() - started
     return dict(
         id=str(uuid4()),
@@ -199,12 +224,14 @@ def simulate(req: SimulationRequest):
         ),
         parameters=dict(
             wheel_speed_rad_s=req.wheel_speed_rad_s,
+            drive_direction="reverse" if direction < 0 else "forward",
             design_mass_kg=sum(c.mass_kg for c in req.robot.components),
         ),
         metrics=dict(
             simulated_seconds=float(data.time),
             wall_seconds=wall,
             displacement_m=displacement,
+            forward_distance_m=forward_distance,
             max_contact_count=contacts,
             max_tilt_rad=max_tilt,
             steps=steps,
@@ -212,9 +239,11 @@ def simulate(req: SimulationRequest):
         outcome="Drive experiment completed"
         if displacement > 0.1 and max_tilt < 0.5
         else "Drive experiment completed with limited motion or instability",
-        task_completed=None,
+        task_completed=task_completed,
         limitations=[
-            "Assigned task is not executed by this adapter.",
+            "Only simple straight-line forward/reverse tasks are evaluated; other assigned missions are not executed or scored."
+            if required_distance is None else
+            "Straight-line drive success is measured from signed MuJoCo displacement and tilt; no navigation or perception is involved.",
             "Contact counts include expected wheel-floor contacts, not obstacle collision events.",
             "No camera, LiDAR, or AI inference is simulated.",
             "Selected hardware does not alter physics or imply measured compute performance.",
