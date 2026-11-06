@@ -20,6 +20,7 @@ import {
   type RobotKind,
 } from "../lib/arise";
 import { api, formatError } from "../lib/api";
+import { resolveExperience } from "../lib/simulation-lessons";
 import { useMotionPreference } from "../lib/use-motion-preference";
 import { useModalFocus } from "../lib/use-modal-focus";
 import type { BackendHealth } from "../lib/types";
@@ -89,6 +90,11 @@ export default function Home() {
     setStage(5);
   }, []);
   function build(text: string) {
+    const experience = resolveExperience(text);
+    if (experience && experience !== "microduck") {
+      window.location.assign(`/simulation?scene=${experience}`);
+      return;
+    }
     const next = resolveRobot(text);
     if (!next) {
       setError(
@@ -202,6 +208,9 @@ export default function Home() {
           BY THE CURIOUS, FOR THE CURIOUS.
         </span>
         <div className="header-actions">
+          <a className="header-simulation" href="/simulation">
+            Simulation <ArrowUpRight size={15} />
+          </a>
           <span className="local-status">
             <i />
             {health ? "LAB CONNECTED" : "LOCAL LAB"}
@@ -225,23 +234,25 @@ export default function Home() {
           </button>
         </div>
       </header>
-      <div className="arise-stage">
-        <Scene
-          kind={kind}
-          assembling={assembling}
-          replay={replay}
-          exploded={exploded}
-          wireframe={wireframe || (assembling && stage === 1)}
-          selected={step === "imagine" ? "" : selected}
-          onSelect={setSelected}
-          task={task}
-          taskStart={taskStart}
-          cameraReset={cameraReset}
-          reduced={reduced}
-          onComplete={complete}
-        />
-        <div className="stage-shade" />
-      </div>
+      {step !== "imagine" && (
+        <div className="arise-stage">
+          <Scene
+            kind={kind}
+            assembling={assembling}
+            replay={replay}
+            exploded={exploded}
+            wireframe={wireframe || (assembling && stage === 1)}
+            selected={selected}
+            onSelect={setSelected}
+            task={task}
+            taskStart={taskStart}
+            cameraReset={cameraReset}
+            reduced={reduced}
+            onComplete={complete}
+          />
+          <div className="stage-shade" />
+        </div>
+      )}
       {step === "imagine" ? (
         <>
           <section className="landing-copy">
@@ -257,11 +268,6 @@ export default function Home() {
               Imagine it. Assemble it. Understand it.
               <br />A new dimension of learning robotics.
             </p>
-            <div className="hero-model-note">
-              <span>01 — HUMANOID</span>
-              <span>LIVE PROCEDURAL MODEL</span>
-              <span className="note-rule" />
-            </div>
           </section>
           <section className="landing-prompt" id="experience-panel">
             <div className="prompt-heading">
@@ -303,11 +309,19 @@ export default function Home() {
               Instant local assembly · Optional NVIDIA Nemotron tutoring via
               Nebius
             </p>
+            <a className="simulation-entry" href="/simulation">
+              <span>
+                <b>A RACK. A MODULE. A ROBOT.</b>
+                <strong>Step inside the Simulation lab</strong>
+                <small>Vera Rubin · Jetson Thor T5000 · Microduck</small>
+              </span>
+              <ArrowUpRight size={25} />
+            </a>
           </section>
           <div className="landing-bottom">
             <span>ENGINEERED TO SPARK CURIOSITY</span>
             <span>
-              DRAG TO ORBIT <b>✛</b> SCROLL TO ZOOM
+              IMAGINE <b>✛</b> EXPLORE <b>✛</b> UNDERSTAND
             </span>
             <span>EST. 2026</span>
           </div>

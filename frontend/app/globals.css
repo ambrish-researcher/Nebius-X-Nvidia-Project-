@@ -1046,3 +1046,187 @@ dd {
     scroll-behavior: auto !important;
   }
 }
+/* Opening composition; original ZIP palette and background gradients retained. */
+.is-landing {
+  background: var(--bg);
+}
+.is-landing::before {
+  content: "";
+  position: absolute;
+  inset: 108px 0 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #080b09 0%, transparent 28%),
+    linear-gradient(0deg, #080b09, transparent 30%);
+}
+.is-landing .landing-copy {
+  text-align: center;
+  padding: 58px 24px 0;
+  width: 100%;
+}
+.is-landing .landing-copy h1 {
+  font-size: clamp(58px, 6.5vw, 92px);
+  margin: 27px 0 23px;
+}
+.is-landing .landing-copy > p {
+  margin-inline: auto;
+  max-width: none;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.is-landing .landing-prompt {
+  width: min(720px, 86%);
+  max-width: none;
+  margin: 40px auto 0;
+}
+.is-landing .landing-prompt form {
+  padding: 10px 11px 10px 24px;
+  border-color: #b4ed7370;
+  background: #162013;
+  border-radius: 5px;
+}
+.is-landing .landing-prompt form:focus-within {
+  border-color: var(--green);
+}
+.is-landing .landing-prompt input {
+  height: 57px;
+  font-size: 17px;
+}
+.is-landing .landing-prompt form > button {
+  height: 55px;
+  min-width: 55px;
+  border-radius: 3px;
+}
+.is-landing .prompt-heading {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+.is-landing .robot-shortcuts {
+  justify-content: center;
+  margin-top: 20px;
+}
+.is-landing .robot-shortcuts > span {
+  font-size: 9px;
+}
+.is-landing .robot-shortcuts button {
+  font-size: 12px;
+  padding: 11px 17px;
+}
+.is-landing .local-note {
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.7;
+  margin-top: 18px;
+}
+.header-simulation {
+  display: inline-flex;
+  gap: 14px;
+  align-items: center;
+  color: #c8e1b3;
+  padding: 11px 0;
+  margin-right: 17px;
+  font-size: 12px;
+}
+.simulation-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+  border-top: 1px solid #b4ed7333;
+  padding: 26px 0 0;
+  margin-top: 30px;
+  text-align: left;
+}
+.simulation-entry span {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.simulation-entry b {
+  font: 8px monospace;
+  letter-spacing: 1px;
+  color: #97b17f;
+}
+.simulation-entry strong {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.4px;
+}
+.simulation-entry small {
+  font-size: 11px;
+  color: #98ab8d;
+}
+.simulation-entry > svg {
+  color: var(--green);
+}
+.is-landing .landing-bottom {
+  margin-top: 45px;
+  padding-bottom: 24px;
+  font-size: 9px;
+}
+@media (max-width: 1050px) {
+  .header-simulation {
+    margin-right: 5px;
+  }
+}
+@media (max-width: 700px) {
+  .is-landing .landing-copy {
+    padding-top: 48px;
+  }
+  .is-landing .landing-copy h1 {
+    font-size: 63px;
+  }
+  .is-landing .landing-copy > p {
+    font-size: 13px;
+  }
+  .is-landing .landing-prompt {
+    margin-top: 32px;
+    width: 88%;
+  }
+  .is-landing .landing-prompt input {
+    font-size: 13px;
+    height: 49px;
+  }
+  .is-landing .landing-prompt form {
+    padding: 8px 8px 8px 15px;
+    gap: 6px;
+  }
+  .is-landing .landing-prompt form > button {
+    height: 47px;
+    min-width: 47px;
+  }
+  .is-landing .prompt-heading {
+    font-size: 8px;
+  }
+  .is-landing .robot-shortcuts {
+    gap: 6px;
+  }
+  .is-landing .robot-shortcuts button {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+  .is-landing .local-note {
+    font-size: 9px;
+  }
+  .header-simulation {
+    font-size: 11px;
+    gap: 7px;
+    margin-right: 0;
+  }
+  .header-actions {
+    gap: 10px;
+  }
+  .local-status {
+    display: none;
+  }
+  .simulation-entry strong {
+    font-size: 18px;
+  }
+  .simulation-entry small {
+    font-size: 10px;
+  }
+  .is-landing .landing-bottom {
+    font-size: 7px;
+    margin-top: 35px;
+  }
+}
