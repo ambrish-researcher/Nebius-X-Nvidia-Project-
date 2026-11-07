@@ -67,7 +67,9 @@ def database():
         )
         for name, typ in (
             ("response_model", "TEXT"), ("completed_at", "DOUBLE PRECISION"),
-            ("validated_at", "DOUBLE PRECISION"), ("parent_key", "TEXT")
+            ("validated_at", "DOUBLE PRECISION"), ("parent_key", "TEXT"),
+            ("provider_request_id", "TEXT"), ("completion_id", "TEXT"),
+            ("provider_created_at", "DOUBLE PRECISION"), ("latency_ms", "DOUBLE PRECISION")
         ):
             con.execute(f"ALTER TABLE requests ADD COLUMN IF NOT EXISTS {name} {typ}")
         con.commit()

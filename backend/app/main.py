@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 import httpx
 from dotenv import load_dotenv
 from . import ai
+from .stage_explanations import StageExplanationRequest, explain_stage
 from .models import (
     AIRequest,
     GenerationRequest,
@@ -34,6 +35,7 @@ from .generation import Design, validate_design
 from . import request_jobs
 from starlette.responses import JSONResponse
 
+load_dotenv(Path(__file__).resolve().parents[2] / ".env.local")
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 app = FastAPI(title="Robotics Intelligence Platform", version="0.1.0")
 app.add_middleware(
@@ -55,6 +57,7 @@ async def deployment_guard(request: Request, call_next):
         "/api/generate",
         "/api/ai",
         "/api/models",
+        "/api/simulation/explain",
     ] or request.url.path.startswith("/api/generations/")
     token = os.getenv("LAB_ACCESS_TOKEN")
     if protected and (token or os.getenv("LAB_ENV") == "production"):
@@ -299,6 +302,17 @@ async def assist(req: AIRequest):
         schema,
         validator=lambda data: validate_workflow(req.workflow, data),
     )
+
+
+@app.post("/api/simulation/explain")
+async def simulation_explanation(req: StageExplanationRequest):
+    try:
+        return await explain_stage(req)
+    except HTTPException as exc:
+        # No provider attribution on failed or unverified output.
+        return JSONResponse(
+            {"source": "fallback", "detail": exc.detail}, status_code=exc.status_code
+        )
 
 
 @app.post("/api/recommend")

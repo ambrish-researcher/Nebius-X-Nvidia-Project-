@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import SiteBackground from "../components/site-background";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "ARISE — Ideas become machines",
   description:
-    "Imagine, assemble and understand humanoid, drone and Microduck robots in an interactive 3D learning environment.",
+    "Explore Vera Rubin, Jetson Thor T5000 and Microduck through interactive, step-by-step 3D engineering simulations.",
 };
 export default function RootLayout({
   children,
@@ -12,7 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SiteBackground />
+        {children}
+      </body>
     </html>
   );
 }

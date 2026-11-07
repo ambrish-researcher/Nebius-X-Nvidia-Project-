@@ -1,18 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  ChevronLeft,
-  ChevronRight,
   Focus,
-  Layers3,
-  Pause,
-  Play,
   Plus,
   Minus,
+  Pause,
+  Play,
   RotateCcw,
   ScanLine,
 } from "lucide-react";
@@ -22,15 +19,24 @@ import {
   type ExperienceId,
 } from "../../lib/simulation-lessons";
 import { useMotionPreference } from "../../lib/use-motion-preference";
+import StageExplanation from "../../components/stage-explanation";
+import { SHOTS } from "../../lib/simulation-direction";
+import {
+  CONSTRUCTION,
+  constructionAt,
+  constructionPartStage,
+} from "../../lib/simulation-construction";
 import "./simulation.css";
 
+const warmScene = () => {
+  void import("../../components/simulation-scene").catch(() => {});
+};
 const Scene = dynamic(() => import("../../components/simulation-scene"), {
   ssr: false,
   loading: () => (
     <p className="sim-scene-loading">Preparing your 3D workspace…</p>
   ),
 });
-const STEP_SECONDS = 14;
 
 function Glyph({ kind }: { kind: ExperienceId }) {
   return (
@@ -143,19 +149,35 @@ function Glyph({ kind }: { kind: ExperienceId }) {
 }
 
 export default function SimulationPage() {
-  const [kind, setKind] = useState<ExperienceId | null>(null),
-    [step, setStep] = useState(0),
-    [playing, setPlaying] = useState(false),
-    [speed, setSpeed] = useState(1),
-    [progress, setProgress] = useState(0);
-  const [reset, setReset] = useState(0),
+  const [kind, setKind] = useState<ExperienceId | null>(null);
+  const [stageIndex, setStageIndex] = useState(0),
+    [speed, setSpeed] = useState<1 | 2 | 3>(1),
+    [playing, setPlaying] = useState(true),
+    [ready, setReady] = useState(false),
+    [revision, setRevision] = useState(0),
+    [reset, setReset] = useState(0),
     [zoom, setZoom] = useState(0),
-    [explode, setExplode] = useState(false),
     [wireframe, setWireframe] = useState(false),
-    [inspecting, setInspecting] = useState("");
-  const elapsed = useRef(0),
-    time = useRef(0),
+    [inspection, setInspection] = useState("");
+  const time = useRef(0),
+    stageRef = useRef(0),
     reduced = useMotionPreference();
+  const explanationPane = useRef<HTMLElement>(null);
+  useEffect(() => {
+    explanationPane.current?.scrollTo({ top: 0 });
+  }, [stageIndex, inspection]);
+  const onReady = useCallback(() => setReady(true), []);
+  const restart = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    time.current = 0;
+    stageRef.current = 0;
+    setStageIndex(0);
+    setPlaying(true);
+    setInspection("");
+    setZoom(0);
+    setReset((n) => n + 1);
+    setRevision((n) => n + 1);
+  }, []);
   useEffect(() => {
     const read = () => {
       const value = new URLSearchParams(location.search).get("scene");
@@ -164,80 +186,66 @@ export default function SimulationPage() {
           ? (value as ExperienceId)
           : null,
       );
-      setStep(0);
-      setPlaying(false);
-      elapsed.current = 0;
-      time.current = 0;
-      setProgress(0);
+      setReady(false);
+      setWireframe(false);
+      restart();
     };
     read();
     window.addEventListener("popstate", read);
     return () => window.removeEventListener("popstate", read);
-  }, []);
+  }, [restart]);
   useEffect(() => {
-    if (!playing || !kind) return;
+    if (!kind || !ready || !playing) return;
     let handle = 0,
-      last = performance.now(),
-      lastPaint = 0;
+      last = performance.now();
     const tick = (now: number) => {
+      // Background tabs cannot skip the reader past unseen construction stages.
       const delta = document.hidden
         ? 0
-        : Math.min((now - last) / 1000, 0.25) * speed;
+        : Math.max(0, Math.min((now - last) / 1000, 0.1));
       last = now;
-      elapsed.current += delta;
-      time.current += delta;
-      if (now - lastPaint > 90) {
-        setProgress(Math.min(1, elapsed.current / STEP_SECONDS));
-        lastPaint = now;
-      }
-      if (elapsed.current >= STEP_SECONDS) {
-        if (step < EXPERIENCES[kind].steps.length - 1) {
-          elapsed.current = 0;
-          setProgress(0);
-          setStep((s) => s + 1);
-          setInspecting("");
-        } else {
-          setProgress(1);
-          setPlaying(false);
-        }
-        return;
+      time.current += delta * speed;
+      const next = constructionAt(kind, time.current);
+      if (next !== stageRef.current) {
+        stageRef.current = next;
+        setStageIndex(next);
+        setInspection("");
       }
       handle = requestAnimationFrame(tick);
     };
     handle = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(handle);
-  }, [playing, speed, kind, step]);
+  }, [kind, ready, revision, playing, speed]);
   function choose(id: ExperienceId | null) {
+    if (id === kind) {
+      restart();
+      return;
+    }
+    if (id) warmScene();
     setKind(id);
-    setStep(0);
-    setPlaying(false);
-    setProgress(0);
-    elapsed.current = 0;
-    time.current = 0;
-    setExplode(false);
+    setReady(false);
     setWireframe(false);
-    setInspecting("");
-    setReset((n) => n + 1);
+    restart();
     history.pushState(null, "", id ? `/simulation?scene=${id}` : "/simulation");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
-  function move(next: number, reveal = false) {
-    setStep(next);
-    setPlaying(false);
-    elapsed.current = 0;
-    time.current = 0;
-    setProgress(0);
-    setInspecting("");
-    if (reveal)
-      document
-        .querySelector(".sim-current-step")
-        ?.scrollIntoView({
-          behavior: reduced ? "instant" : "smooth",
-          block: "start",
-        });
+  function inspect(id: string) {
+    setInspection(id);
   }
-  const experience = kind ? EXPERIENCES[kind] : null,
-    current = experience?.steps[step];
+  const experience = kind ? EXPERIENCES[kind] : null;
+  const stages = kind ? CONSTRUCTION[kind] : [];
+  const current = stages[stageIndex];
+  const working = !!current?.working;
+  const selectedStage = kind ? constructionPartStage(kind, inspection) : -1;
+  const explanation = selectedStage > 0 ? stages[selectedStage] : current;
+  const shotIndex =
+    working && selectedStage > 0 ? explanation.shot : (current?.shot ?? 0);
+  const shot = kind ? SHOTS[kind][shotIndex] : null;
+  const focus =
+    working && selectedStage > 0 ? explanation.focus : (current?.focus ?? "");
+  const inspectable = stages.filter(
+    (s, i) => i > 0 && i <= stageIndex && !s.concept && !s.working,
+  );
   return (
     <main className="sim-page">
       <header className="arise-header sim-header">
@@ -293,13 +301,16 @@ export default function SimulationPage() {
                     <h2>{e.name}</h2>
                     <p>{e.description}</p>
                     <button
+                      onPointerEnter={warmScene}
+                      onFocus={warmScene}
                       onClick={() => choose(id)}
                       aria-label={`Start ${e.name} simulation`}
                     >
                       Start Simulation <ArrowUpRight size={19} />
                     </button>
                     <span className="sim-card-count">
-                      {e.steps.length} guided steps · Orbit & zoom
+                      {CONSTRUCTION[id].length - 2} construction stages · Orbit
+                      & zoom
                     </span>
                   </div>
                 </article>
@@ -335,34 +346,86 @@ export default function SimulationPage() {
                 <span className="sim-kicker">
                   {experience.name}{" "}
                   <b>
-                    STEP {String(step + 1).padStart(2, "0")} /{" "}
-                    {experience.steps.length}
+                    {working
+                      ? "CONSTRUCTION COMPLETE"
+                      : `STAGE ${String(stageIndex).padStart(2, "0")} / ${stages.length - 2}`}
                   </b>
                 </span>
                 <h1>{current.title}</h1>
                 <p>{current.caption}</p>
               </div>
+              <div
+                className="sim-motion-controls"
+                role="group"
+                aria-label="Simulation playback"
+              >
+                <button
+                  className="sim-pause-button"
+                  disabled={!ready}
+                  onClick={() => setPlaying((value) => !value)}
+                  aria-label={
+                    playing ? "Pause simulation" : "Resume simulation"
+                  }
+                >
+                  {playing ? <Pause size={16} /> : <Play size={16} />}
+                  {playing ? "Pause" : "Resume"}
+                </button>
+                <div
+                  className="sim-speed-options"
+                  role="group"
+                  aria-label="Simulation speed"
+                >
+                  <span aria-hidden="true">Speed</span>
+                  {([1, 2, 3] as const).map((rate) => (
+                    <button
+                      key={rate}
+                      onClick={() => setSpeed(rate)}
+                      aria-label={`${rate}× speed`}
+                      aria-pressed={speed === rate}
+                    >
+                      {rate}×
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="sim-viewport">
+                <div className="sim-shot-heading">
+                  {working && inspection
+                    ? `Attached assembly / ${explanation.title}`
+                    : shot?.view}
+                </div>
                 <Scene
                   key={kind}
                   kind={kind}
-                  step={step}
+                  step={shotIndex}
                   time={time}
+                  building={!working}
+                  playing={playing}
                   reduced={reduced}
                   reset={reset}
                   wireframe={wireframe}
-                  explode={explode}
+                  activeBuildPart={current.focus}
+                  stageIndex={stageIndex}
+                  focus={focus}
+                  inspection={inspection}
+                  onReady={onReady}
                   zoom={zoom}
-                  onInspect={setInspecting}
+                  onInspect={inspect}
                 />
                 <div className="sim-live">
                   <i /> LIVE 3D / EDUCATIONAL MODEL
                 </div>
+                {shot?.signal && (working || current.concept) && (
+                  <div className="sim-flow-legend">
+                    {shot.signal}
+                    {reduced ? " / Reduced motion: static signals" : ""}
+                  </div>
+                )}
               </div>
               <div className="sim-viewport-caption">
                 <span>
-                  {inspecting
-                    ? `INSPECTING / ${inspecting}`
+                  {inspection
+                    ? `INSPECTING / ${explanation.title}`
                     : "DRAG TO ORBIT · SCROLL OR PINCH TO ZOOM · CLICK A PART"}
                 </span>
                 <span>{reduced ? "REDUCED MOTION" : "REAL-TIME GEOMETRY"}</span>
@@ -372,12 +435,6 @@ export default function SimulationPage() {
                 role="group"
                 aria-label="3D inspection controls"
               >
-                <button
-                  onClick={() => setExplode((v) => !v)}
-                  aria-pressed={explode}
-                >
-                  <Layers3 size={16} /> Explode
-                </button>
                 <button
                   onClick={() => setWireframe((v) => !v)}
                   aria-pressed={wireframe}
@@ -400,119 +457,81 @@ export default function SimulationPage() {
                   <Focus size={16} /> Reset view
                 </button>
               </div>
-              <div
-                className="sim-playback"
-                role="group"
-                aria-label="Walkthrough playback"
+              <div className="sim-construction-status" role="status">
+                <span>
+                  {!ready
+                    ? "Preparing the stage"
+                    : !playing
+                      ? `Paused / ${current.title}`
+                      : working
+                        ? "Assembly complete / working example active"
+                        : current.concept
+                          ? "General semiconductor concepts"
+                          : `Constructing / ${stageIndex} of ${stages.length - 2} stages`}
+                </span>
+                <button onClick={restart}>
+                  <RotateCcw size={16} /> Restart construction
+                </button>
+              </div>
+              <section
+                className="sim-inspection"
+                aria-label="Inspect attached components"
               >
-                <button
-                  disabled={step === 0}
-                  onClick={() => move(step - 1)}
-                  aria-label="Previous step"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  className="sim-play-button"
-                  onClick={() => {
-                    if (progress === 1 && step === experience.steps.length - 1)
-                      move(0);
-                    setPlaying((v) => !v);
-                  }}
-                  aria-label={
-                    playing ? "Pause walkthrough" : "Play walkthrough"
-                  }
-                >
-                  {playing ? <Pause size={17} /> : <Play size={17} />}{" "}
-                  {playing ? "Pause" : "Play"}
-                </button>
-                <button
-                  disabled={step === experience.steps.length - 1}
-                  onClick={() => move(step + 1)}
-                  aria-label="Next step"
-                >
-                  <ChevronRight size={20} />
-                </button>
-                <button
-                  onClick={() => {
-                    move(0);
-                    setReset((n) => n + 1);
-                  }}
-                  className="sim-restart"
-                >
-                  <RotateCcw size={16} /> Restart
-                </button>
-                <label className="sim-speed">
-                  Speed
-                  <select
-                    value={speed}
-                    onChange={(e) => setSpeed(Number(e.target.value))}
-                    aria-label="Playback speed"
-                  >
-                    <option value={1}>1×</option>
-                    <option value={2}>2×</option>
-                    <option value={4}>4×</option>
-                  </select>
-                </label>
-              </div>
-              <div className="sim-timeline">
-                <progress
-                  value={(step + progress) / experience.steps.length}
-                  max={1}
-                  aria-label="Walkthrough progress"
-                />
-                <span>
-                  {playing
-                    ? `Playing · ${speed}×`
-                    : "Paused · explore at your pace"}
-                </span>
-                <span>
-                  {step + 1} of {experience.steps.length}
-                </span>
-              </div>
-              <nav className="sim-chapters" aria-label="Simulation steps">
-                {experience.steps.map((s, i) => (
+                <p>Inspect attached components</p>
+                {inspectable.length === 0 ? (
+                  <p className="sim-inspection-hint">
+                    Parts become available here as they attach.
+                  </p>
+                ) : (
+                  <div className="sim-chapters">
+                    {inspectable.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => inspect(s.focus)}
+                        aria-pressed={inspection === s.focus}
+                      >
+                        <span aria-hidden="true">✓</span>
+                        {s.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {working && inspection && (
                   <button
-                    key={s.title}
-                    onClick={() => move(i, true)}
-                    aria-current={step === i ? "step" : undefined}
+                    className="sim-return-example"
+                    onClick={() => setInspection("")}
                   >
-                    <span>{String(i + 1).padStart(2, "0")}</span>
-                    {s.title}
-                    {i < step && <span className="sim-visited">↗</span>}
+                    Return to working example <ArrowRight size={15} />
                   </button>
-                ))}
-              </nav>
+                )}
+              </section>
             </section>
             <aside
               className="sim-explanation"
+              ref={explanationPane}
               aria-label="Current step explanation"
+              tabIndex={0}
             >
               <span className="sim-kicker">THE IDEA, EXPLAINED</span>
-              <section>
-                <h2>What you’re seeing</h2>
-                <p>{current.see}</p>
-              </section>
-              <section>
-                <h2>How it works</h2>
-                <p>{current.how}</p>
-              </section>
-              <section>
-                <h2>Why it matters</h2>
-                <p>{current.why}</p>
-              </section>
-              <div className="sim-vocabulary">
-                <h3>A few useful words</h3>
-                <dl>
-                  {current.terms.map(([word, definition]) => (
-                    <div key={word}>
-                      <dt>{word}</dt>
-                      <dd>{definition}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-              {step === experience.steps.length - 1 && (
+              <h2 className="sim-explanation-stage">{explanation.title}</h2>
+              <p className="sim-representation">
+                {current.concept
+                  ? "General concept / not NVIDIA manufacturing or chip layout"
+                  : kind === "rubin"
+                    ? "Educational rack schematic / illustrative internals"
+                    : kind === "thor"
+                      ? "Educational module view / illustrative internal layout"
+                      : "Original robot model / illustrative internals"}
+              </p>
+              <StageExplanation
+                key={`${kind}/${explanation.id}`}
+                scene={kind}
+                stage={explanation}
+                experience={experience}
+                playing={playing}
+                onPause={() => setPlaying(false)}
+              />
+              {working && (
                 <section className="sim-takeaways">
                   <h2>Take it with you.</h2>
                   <ul>

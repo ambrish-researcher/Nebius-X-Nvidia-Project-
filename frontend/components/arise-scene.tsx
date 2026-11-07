@@ -24,16 +24,18 @@ interface Props {
   taskStart: number;
   cameraReset: number;
   reduced: boolean;
+  onAvailability: (available: boolean) => void;
   onComplete: () => void;
 }
 class SceneBoundary extends Component<
-  { children: ReactNode },
+  { children: ReactNode; onFailure: () => void },
   { failed: boolean }
 > {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
   }
+  componentDidCatch() { this.props.onFailure(); }
   render() {
     return this.state.failed ? (
       <div className="webgl-message">
@@ -276,8 +278,9 @@ export default function AriseScene(props: Props) {
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2");
     setSupported(!!gl);
+    props.onAvailability(!!gl);
     gl?.getExtension("WEBGL_lose_context")?.loseContext();
-  }, []);
+  }, [props.onAvailability]);
   useEffect(() => {
     if (supported === false && props.assembling) {
       const timer = setTimeout(props.onComplete, 6000);
@@ -293,12 +296,14 @@ export default function AriseScene(props: Props) {
     );
   if (supported === null) return null;
   return (
-    <SceneBoundary>
+    <SceneBoundary onFailure={() => props.onAvailability(false)}>
       <Canvas
         dpr={[1, 1.5]}
         camera={{ position: [4, 3, 6], fov: 38 }}
         gl={{ antialias: true, powerPreference: "low-power" }}
         onCreated={({ gl }) => {
+          gl.domElement.addEventListener("webglcontextlost", () => props.onAvailability(false));
+          gl.domElement.addEventListener("webglcontextrestored", () => props.onAvailability(true));
           gl.domElement.setAttribute(
             "aria-label",
             `${ROBOTS[props.kind].name} interactive 3D model`,

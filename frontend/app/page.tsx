@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
   ArrowUpRight,
@@ -30,9 +31,15 @@ const Scene = dynamic(() => import("../components/arise-scene"), {
 type Step = "imagine" | "assemble" | "task" | "compute" | "learn";
 const steps: Step[] = ["imagine", "assemble", "task", "compute", "learn"];
 export default function Home() {
+  const router = useRouter();
+  function prepareSimulation() {
+    router.prefetch("/simulation");
+    void import("../components/simulation-scene").catch(() => {});
+  }
   const [loaded, setLoaded] = useState(false),
     [kind, setKind] = useState<RobotKind>("humanoid"),
     [step, setStep] = useState<Step>("imagine");
+  const [rendering, setRendering] = useState(false);
   const [prompt, setPrompt] = useState(""),
     [error, setError] = useState(""),
     [assembling, setAssembling] = useState(false),
@@ -66,7 +73,7 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [reduced]);
   useEffect(() => {
-    api<BackendHealth>("health")
+    api<BackendHealth>("health", undefined, 5000)
       .then(setHealth)
       .catch(() => setHealth(null));
   }, []);
@@ -81,6 +88,15 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [assembling, replay]);
   useEffect(() => {
+    if (!assembling) return;
+    // Leave component study reachable if the renderer crashes during assembly.
+    const timer = setTimeout(() => {
+      setAssembling(false);
+      setStage(5);
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [assembling, replay]);
+  useEffect(() => {
     if (taskStatus !== "running") return;
     const timer = setTimeout(() => setTaskStatus("completed"), 3000);
     return () => clearTimeout(timer);
@@ -92,7 +108,7 @@ export default function Home() {
   function build(text: string) {
     const experience = resolveExperience(text);
     if (experience && experience !== "microduck") {
-      window.location.assign(`/simulation?scene=${experience}`);
+      router.push(`/simulation?scene=${experience}`);
       return;
     }
     const next = resolveRobot(text);
@@ -118,6 +134,12 @@ export default function Home() {
     setReply("");
   }
   function run(name: string) {
+    if (!rendering) {
+      setError(
+        "3D rendering is unavailable. Reload to restore the scene before running a motion demonstration. Component lessons remain available.",
+      );
+      return;
+    }
     const found = robot.tasks.find(
       (t) => t.toLowerCase() === name.trim().toLowerCase(),
     );
@@ -237,6 +259,7 @@ export default function Home() {
       {step !== "imagine" && (
         <div className="arise-stage">
           <Scene
+            onAvailability={setRendering}
             kind={kind}
             assembling={assembling}
             replay={replay}
@@ -285,6 +308,7 @@ export default function Home() {
               </label>
               <input
                 id="arise-prompt"
+                onFocus={prepareSimulation}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="A humanoid. A drone. A little curiosity."
@@ -292,19 +316,10 @@ export default function Home() {
                 autoComplete="off"
               />
               <button aria-label="Build robot" type="submit">
+                Build &amp; explore
                 <ArrowUpRight size={25} />
               </button>
             </form>
-            <div className="robot-shortcuts">
-              <span>START WITH</span>
-              {(Object.keys(ROBOTS) as RobotKind[]).map((k, i) => (
-                <button key={k} onClick={() => build(k)}>
-                  <small>0{i + 1}</small>
-                  {ROBOTS[k].name}
-                  <ArrowUpRight size={13} />
-                </button>
-              ))}
-            </div>
             <p className="local-note">
               Instant local assembly · Optional NVIDIA Nemotron tutoring via
               Nebius
@@ -795,11 +810,13 @@ export default function Home() {
           <div className="viewport-caption">
             <span>
               <i />
-              {assembling
-                ? "ASSEMBLING"
-                : taskStatus === "running"
-                  ? "MOTION IN PROGRESS"
-                  : "LIVE 3D ENVIRONMENT"}
+              {!rendering
+                ? "3D UNAVAILABLE / COMPONENT STUDY"
+                : assembling
+                  ? "ASSEMBLING"
+                  : taskStatus === "running"
+                    ? "MOTION IN PROGRESS"
+                    : "LIVE 3D ENVIRONMENT"}
             </span>
             <span>DRAG TO ORBIT / SCROLL TO ZOOM</span>
           </div>

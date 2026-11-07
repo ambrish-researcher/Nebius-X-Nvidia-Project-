@@ -13,9 +13,34 @@
 html,
 body {
   margin: 0;
-  background: var(--bg);
+  background: #050805;
   color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
+}
+body {
+  position: relative;
+  isolation: isolate;
+}
+.site-grid-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.75;
+  background: #050805;
+}
+.site-grid-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, #07100a10 0%, #0508058a 82%),
+    linear-gradient(180deg, #0508055c, #05080594);
+}
+.site-grid-background .grid-scan {
+  position: absolute;
+  inset: 0;
 }
 button,
 input {
@@ -63,6 +88,7 @@ button:hover:not(:disabled) {
 .arise {
   min-height: 100svh;
   position: relative;
+  z-index: 1;
   overflow-x: clip;
 }
 .arise-header {
@@ -1048,7 +1074,7 @@ dd {
 }
 /* Opening composition; original ZIP palette and background gradients retained. */
 .is-landing {
-  background: var(--bg);
+  background: transparent;
 }
 .is-landing::before {
   content: "";
@@ -1078,6 +1104,30 @@ dd {
   width: min(720px, 86%);
   max-width: none;
   margin: 40px auto 0;
+  isolation: isolate;
+}
+.prompt-grid-background {
+  position: absolute;
+  inset: -20px -16px;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #050805;
+  pointer-events: none;
+  opacity: 0.8;
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    #000 10%,
+    #000 82%,
+    transparent
+  );
+}
+.prompt-grid-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #05080514, #0508059c);
 }
 .is-landing .landing-prompt form {
   padding: 10px 11px 10px 24px;
@@ -1228,5 +1278,63 @@ dd {
   .is-landing .landing-bottom {
     font-size: 7px;
     margin-top: 35px;
+  }
+}
+/* Center the complete opening composer, including its submit action. */
+.is-landing .landing-prompt {
+  margin-inline: auto;
+  text-align: center;
+}
+.is-landing .prompt-heading {
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  gap: 8px 24px;
+}
+.is-landing .landing-prompt form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #102014ed;
+}
+.is-landing .landing-prompt input {
+  min-width: 0;
+  text-align: center;
+}
+.is-landing .landing-prompt form > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-inline: auto;
+  width: auto;
+  padding-inline: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #13200d;
+}
+.is-landing .landing-prompt form > button:hover {
+  background: #c5fa8c;
+  color: #0c1809;
+}
+.is-landing .simulation-entry {
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+}
+.is-landing .simulation-entry span {
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .is-landing .landing-prompt input {
+    font-size: 16px;
+  }
+  .is-landing .landing-prompt form {
+    padding: 12px;
+  }
+  .is-landing .prompt-heading span:last-child {
+    display: block;
   }
 }
