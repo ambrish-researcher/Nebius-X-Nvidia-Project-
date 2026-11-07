@@ -6,7 +6,7 @@
     "dev": "next dev frontend --hostname 0.0.0.0",
     "build": "next build frontend --webpack",
     "start": "next start frontend --hostname 0.0.0.0",
-    "typecheck": "tsc --noEmit -p frontend/tsconfig.json",
+    "typecheck": "next typegen frontend && tsc --noEmit -p frontend/tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "format": "prettier --write frontend e2e *.ts package.json"

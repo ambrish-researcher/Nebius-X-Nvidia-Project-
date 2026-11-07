@@ -1,101 +1,92 @@
-# Nebius-X-Nvidia-Project-
+# ARISE
 
-## Current frontend: cinematic three-robot learning
+Interactive engineering explanations in the existing Next.js and FastAPI project. The repository and package names remain unchanged.
 
-The active ARISE interface now follows **prompt → procedural assembly → robot task → compute guidance → student learning**, supporting humanoid, drone and Microduck educational templates. It replaces the previous rover dashboard and ball sequence. Assembly and motion work locally without AI. Tasks demonstrate kinematics; they do not establish physical stability or hardware readiness.
+## Current application
 
-See [the local redesign implementation and verification guide](docs/ARISE-REDESIGN.md) for Windows commands, tests, references and limitations. Use port 3100 if another application occupies port 3000. No cloud deployment is included in this rebuild.
+- `/`: the centered prompt composer and the retained humanoid, drone and Microduck robot-learning flow.
+- `/simulation`: the simulation hub, linking to Vera Rubin, Jetson Thor T5000 and Microduck.
+- `/simulation?scene=rubin`, `?scene=thor`, `?scene=microduck`: real-time 3D construction from an empty stage. Named assemblies attach in order, remain assembled and enter an educational working example. Stage explanations, 1x / 2x / 3x speed, Pause/Resume, orbit, zoom, inspection and restart are available.
+- The supplied green-and-black GridScan runs behind the pages. No background video, prerecorded simulation or webcam preview is used.
 
-The sections below describe the earlier platform and retained backend capabilities. Their retired frontend controls and live-verification history do not describe the current page or establish live provider availability in this session.
+The simulation hub is the direct entry to all three staged builds. The opening screen's existing Microduck prompt also retains its separate robot-task flow. These are intentional current features.
 
-**ARISE — THE FUTURE OF KNOWLEDGE AND UNDERSTANDING IN A SINGLE PROMPT**
+Scenes are educational schematics. Vera Rubin is a rack-scale computing platform; its illustrated internal arrangement is not a private service drawing. Thor's fabrication and chip layers explain general concepts rather than NVIDIA's manufacturing process. Microduck uses separate Rockchip-based computing; its motion is kinematic, without a balance/force solver or a live learned policy. The animated data paths do not run actual NVIDIA workloads or benchmark hardware.
 
-An immersive engineering laboratory for turning robot ideas into inspectable 3D concepts, understanding compute trade-offs, and testing supported dynamics.
+## Install and run
 
-The repository and internal package identifier remain unchanged. ARISE extends the existing working robotics platform. See the [engineering studio milestone](docs/studio-milestone.md), [core workflow and live verification](docs/core-workflow.md), and earlier [cinematic milestone](docs/arise-milestone.md).
+Use Node.js 20.9 or newer and Python 3.11 or newer. The existing backend CI configuration uses Python 3.12. Run commands from the repository root. Dependency versions are recorded in `package-lock.json` and `backend/requirements.lock`.
 
-## What works locally
+Windows PowerShell:
 
-- Continuous dark industrial 3D workspace: procedural component geometry, dependency-driven assembly, orbit/zoom/pan, exploded and transparent views, component isolation, focus, annotations, replay, speed, and camera presets.
-- Distinct, clearly labeled rover and articulated-arm **reference designs**. These are not AI output.
-- Pydantic robot specifications with bounded geometry, unique identifiers, valid joint relationships, and acyclic assembly dependencies.
-- Task inputs and deterministic memory, compute power, vision, manipulation, environment, and network checks. CPU control workloads are not automatically assigned a GPU.
-- CPU, microcontroller, Jetson Orin Nano, AGX Orin, and H100 comparison. Power envelopes and memory capacities are reference inputs; no fabricated latency, price, TOPS-derived FPS, or GPU speedup.
-- **Real MuJoCo 3.3.7** four-wheel-rover drive experiment. The model uses the current specification's components, masses, and geometry. Playback, trajectory, joint states, actuator forces, contact counts, and JSON export come from actual solver state.
-- Browser project history, experiment history, quiz attempts, and flashcard review state.
-
-## NVIDIA integration and optional cloud storage
-
-**Nebius Token Factory / NVIDIA Nemotron:** backend-only authenticated model discovery, JSON responses, Pydantic validation, timeout, no automatic paid retry, persistent response cache, token usage, and a SQLite budget ledger. Generation, task interpretation, tutor, recommendations, result analysis, quiz, and flashcard workflows have adapters. Five distinct Nemotron designs have now been verified live and exercised through real backend cache entries in the browser; see the core workflow report. An unavailable provider returns a visible error; there is no scripted AI fallback.
-
-**Supabase:** email sign-in and user-JWT REST persistence with row-level security. Browser persistence works independently. Cloud sync requires a project and migration.
-
-**Not complete:** provider credit verification, live tests for every AI workflow and complex robot design, Supabase integration testing, and a public deployment. Nemotron authentication and application-level generation are verified; Supabase is not configured. Public AI requests additionally require a lab access token. This is a functional local prototype, not a completed P0 hackathon submission.
-
-## Run
-
-Requires Node.js 20.9+ (validated with 24), Python 3.12, a modern browser, and network access to npm/PyPI. GPU and MuJoCo rendering are not required on the backend.
-
-```bash
-./scripts/setup.sh
-# Optional: copy .env.example to .env, then enter real values securely.
-./scripts/dev.sh
+```powershell
+npm.cmd ci
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements.lock
 ```
 
-For cost-safe cinematic development, use `ARISE_VISUAL_DEV=1 ./scripts/dev.sh`. The backend blocks paid inference and the browser clearly labels deterministic reference/learning fixtures. Stop the server and restart without this flag to restore the existing live-provider workflow; visual preview is never represented as NVIDIA output.
+Start the backend:
 
-The frontend listens on port 3000 and the backend on 8000. The Next.js `/api/*` rewrite targets the backend, keeping keys off the client. For separate processes:
-
-```bash
-.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
-# In another terminal, from the repository root:
-npm run dev
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 ```
 
-The default reference workflow works without paid AI. Open the lab, inspect a component, set a task in Challenge, compare compute candidates, then run a flat-floor drive experiment in Simulate. Learn contains the live-provider-dependent tutor, quizzes, and flashcards.
+In another terminal, start the frontend:
 
-## Enable real NVIDIA inference
-
-1. Allow `api.tokenfactory.nebius.com` through the environment's HTTPS policy and configure `NEBIUS_API_KEY` securely on the backend. Never use a `NEXT_PUBLIC_` API key.
-2. Use Connections → Discover NVIDIA models, or authenticated `GET /api/models`. Select an actual returned Nemotron ID as `NEBIUS_MODEL_ID`; no default model is invented.
-3. Verify the model's current input/output token prices in the account, then configure `NEBIUS_INPUT_USD_PER_MILLION` and `NEBIUS_OUTPUT_USD_PER_MILLION`. Paid calls are blocked until prices are configured. Check the **Token Factory** balance independently; AI Cloud credit is not assumed interchangeable.
-4. Set `NEBIUS_BUDGET_LIMIT_USD` (hard-capped by the application at $1), `NEBIUS_MAX_OUTPUT_TOKENS=2048`, and `NEBIUS_REQUEST_TIMEOUT=60`.
-5. Restart the backend. Run the live catalog test and one real generation. Validate output and actual account usage before a demonstration.
-
-The ledger is a **local application spend guard, not the provider balance**. The effective ceiling is the lower of the configured limit and $1, including when the setting is absent. Reservations are transactional and conservative. Unknown charges retain their reservations. Reported valid token usage is reconciled even when JSON or application validation fails. Parsed candidates are retained locally for validation without another charge; invalid candidates are never displayed as successful responses. Transport failures block identical paid retries until operator reconciliation. Cache hits avoid a second inference charge. Keep `.runtime/usage.sqlite` on persistent storage; do not run multiple independent backend replicas with separate budgets. No cloud infrastructure is provisioned by this project. Rates and provider token reporting must be correct for the cost estimate to match billing. Unexpected token-bound overruns are recorded and rejected; the app cannot reverse provider charges or enforce a provider-wide account cap.
-
-## Supabase persistence
-
-Apply [supabase/001_projects.sql](supabase/001_projects.sql) once in your project's SQL editor, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` on the backend, and allow the specific project hostname in the network policy. Create an email/password account using Supabase's supported auth flow. Sign in using Connections; Notebook offers cloud sync and retrieval. User JWTs are verified against Supabase Auth; REST writes use that JWT and RLS, never a service-role bypass. Tokens remain in session storage; no password is persisted. Expired sessions require sign-in again. Before enabling cloud writes for generated robots, normalize model-supplied project identifiers to UUIDs: the live model returned a slug, while the existing SQL table uses UUID primary keys.
-
-## Validate
-
-```bash
-.venv/bin/python -m pytest backend/tests -q
-npm test
-npm run typecheck
-npm run build
-.venv/bin/python scripts/smoke.py
-# With both services running and Chromium installed:
-npm run test:e2e
+```powershell
+npm.cmd run dev
 ```
 
-`CHROMIUM_PATH` selects an installed Chromium executable; the cloud image has `/usr/bin/chromium`. Default browser tests cover desktop/mobile reference workflows, real physics, local persistence, distinct geometry families, and explicitly mocked unavailable/successful AI behavior without paid calls. The live catalog test is skipped without a credential; mocked transport tests do **not** establish real inference.
+Open http://localhost:3000/simulation. On Linux/macOS, `./scripts/setup.sh` installs dependencies and `./scripts/dev.sh` starts both services.
 
-A single opt-in browser test uses the real backend and spends tokens (desktop only, no retries):
+Production validation and preview:
 
-```bash
-RUN_LIVE_NEBIUS=1 npm run test:e2e -- e2e/nebius-live.spec.ts --project=desktop --trace=off --retries=0
+```powershell
+npm.cmd run typecheck
+npm.cmd run build
+npm.cmd run start -- --port 3001
 ```
 
-`/api/health` reports `live_inference_verified` from persisted, model-matched, application-validated live responses. Connections refreshes this evidence and displays “Previously verified” plus the success time. A cached response, catalog query, malformed output, or legacy cache record cannot invent a new successful verification. This is historical evidence, not a live availability probe; no paid request runs on health checks.
+The typecheck command generates Next.js declarations first, so it also works when the generated `frontend/next-env.d.ts` and `.next` folder are absent in a clean checkout. Development and production builds generate them as well. Restart a production preview after rebuilding to avoid serving old asset references.
 
-The production build uses Next.js's supported Webpack builder because Turbopack's CSS-worker socket is restricted in this cloud execution environment.
+The frontend proxies `/api/*` to `http://127.0.0.1:8000` unless `BACKEND_URL` is supplied to Next.js. The hub, 3D construction and built-in explanations work without a provider key. The backend's `/api/health` endpoint is a local liveness check.
 
-## Evidence and limits
+## Optional NVIDIA stage explanations
 
-A local reference run simulated 3.0 s in 1,500 steps, traveling approximately 1.36 m with maximum tilt below 0.001 rad. This is a physics-model result using illustrative friction and masses, not physical hardware validation or task completion. Actual run timing is recorded per experiment. Hardware selection intentionally does not alter the trajectory unless a real inference measurement is supplied in a future adapter.
+Supply `NEBIUS_API_KEY` only in the backend environment, then restart the backend. Do not put it in browser code or a `NEXT_PUBLIC_` variable. The backend can also load local `.env.local` or `.env` settings; keep those files out of Git.
 
-The in-app FPS indicator samples actual frame intervals. Software-rendered cloud Chromium was slow (roughly 2–4 FPS before adaptive quality changes); 60 FPS on GPU hardware has **not** been verified. Geometry and rendering are original procedural assets; no Lusion source, branding, or assets are copied. No external HDRI, font service, or model CDN is needed.
+**Pause & explain this stage** sends the current educational context through `POST /api/simulation/explain` to the fixed model `nvidia/nemotron-3-super-120b-a12b`, using `https://api.tokenfactory.nebius.com/v1/chat/completions`. The requested service root without `/v1/` is also accepted as configuration.
 
-See [architecture](docs/architecture.md), [implementation status](docs/status.md), [deployment instructions](docs/deployment.md), and the [three-minute demo plan](docs/demo.md). MIT licensed.
+Only a validated response with the exact returned model ID receives the attribution **NVIDIA Nemotron 3 Super · served via Nebius Token Factory**. The panel and ledger retain model identity, available request/completion identifiers, UTC timestamps and measured latency. Cached responses retain their original evidence. Missing configuration or failed requests show an explicitly labeled built-in fallback; construction never waits on optional inference by itself.
+
+The existing local inference budget is capped at $1. Prices are read from the authenticated verbose model catalog for stage requests. Paid POSTs are not automatically retried; uncertain charges retain their reservations. Keep `.runtime/usage.sqlite` private and persistent when inference is enabled. It is a local spend guard, not a verified account balance. Public deployments require `LAB_ACCESS_TOKEN` for paid routes. The older `/api/ai` tutor additionally uses its existing model and pricing settings.
+
+The last recorded stage-integration review verified fallback behavior without a configured backend key, not a successful live model response. See [stage integration and verification](docs/arise-nebius-stage-integration.md) for that boundary.
+
+## Project files and documentation
+
+| Path | Purpose |
+| --- | --- |
+| `frontend/app/` | Active Next.js pages, shared layout, styles and error handling. |
+| `frontend/components/arise-scene.tsx`, `frontend/lib/arise.ts` | Retained opening robot-learning flow. |
+| `frontend/components/simulation-*.tsx`, `frontend/lib/simulation-*.ts` | Staged geometry, shared resources, construction, camera direction and educational text. |
+| `frontend/components/grid-scan.*`, `site-background.tsx`, `stage-explanation.tsx` | Background and optional model explanation UI. |
+| `backend/app/` | FastAPI routes, validated data, Nebius client, ledger, retained generation and physics capabilities. |
+| `package.json`, `package-lock.json`, `frontend/*config*` | Frontend dependency, type and build configuration. |
+| `backend/requirements.lock`, `backend/requirements.txt`, `backend/Dockerfile` | Backend dependencies and container definition. |
+| `scripts/`, `vercel.json`, `.dockerignore`, `.github/` | Existing run, deployment and CI configuration. |
+| `supabase/001_projects.sql` | Optional retained persistence schema; no Supabase deployment is implied. |
+
+Current references:
+
+- [Repository cleanup, retained files and ambiguity review](docs/arise-repository-audit.md)
+- [Construction visuals and local review](docs/arise-visual-quality-review.md)
+- [Simulation presentation review](docs/cinematic-simulation-review.md)
+- [Nebius stage integration](docs/arise-nebius-stage-integration.md)
+- [Deployment configuration](docs/deployment.md)
+
+Other milestone and redesign documents record earlier ARISE versions. Older engineering-panel modules and tests are retained where their dependencies or intended retirement are ambiguous; they do not define the active routes. See the repository audit before removing them. Existing test suites remain in the project; they were not run for this cleanup.
+
+Local environment files, API keys, dependencies, build output, virtual environments, runtime ledgers, browser captures and the existing submission ZIP are not source deliverables. The cleanup preserves existing `.gitignore` edits without committing them.
+
+Project code uses the [repository license](LICENSE). The supplied GridScan carries its [included third-party license](frontend/components/grid-scan.LICENSE.md).
